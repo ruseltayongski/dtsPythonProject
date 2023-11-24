@@ -37,10 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'document.apps.DocumentConfig'
+    'login',
+    'document',
+
 ]
 
-AUTH_USER_MODEL = 'document.Employee'
+AUTH_USER_MODEL = 'login.Employee'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
