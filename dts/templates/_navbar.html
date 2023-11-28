@@ -1,8 +1,10 @@
 {% load static %}
 <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
     <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-      <a class="navbar-brand brand-logo" href="index.html"><img src="{% static 'images/logo.svg' %}" alt="logo"/></a>
-      <a class="navbar-brand brand-logo-mini" href="index.html"><img src="{% static 'images/logo-mini.svg' %}" alt="logo"/></a>
+      <a class="navbar-brand brand-logo" href="{% url 'home' %}"><img src="{% static 'images/dts.png' %}" alt="logo"/></a>
+      <a class="navbar-brand brand-logo-mini" href="{% url 'home' %}">
+        <img src="{% static 'images/dts_logo.png' %}" alt="logo"/>
+      </a>
       <button class="navbar-toggler navbar-toggler align-self-center d-none d-lg-flex" type="button" data-toggle="minimize">
         <span class="typcn typcn-th-menu"></span>
       </button>
@@ -127,7 +129,7 @@
         <li class="nav-item nav-profile dropdown">
           <a class="nav-link dropdown-toggle  pl-0 pr-0" href="#" data-toggle="dropdown" id="profileDropdown">
             <i class="typcn typcn-user-outline mr-0"></i>
-            <span class="nav-profile-name">Evan Morales</span>
+            <span class="nav-profile-name">{{ user.first_name|default:'' }} {{ user.last_name|default:'' }}</span>
           </a>
           <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
             <a class="dropdown-item">

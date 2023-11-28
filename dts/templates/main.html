@@ -15,7 +15,7 @@
     <!-- inject:css -->
     <link rel="stylesheet" href="{% static 'css/vertical-layout-light/style.css' %}">
     <!-- endinject -->
-    <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" />
+    <link rel="shortcut icon" href="{% static 'images/dts_logo.png' %}" />
     {% block css %}
     {% endblock %}
 </head>
@@ -56,6 +56,10 @@
     <!-- End plugin js for this page -->
     <!-- Custom js for this page-->
     <script src="{% static 'js/dashboard.js' %}?v=1"></script>
+    <script>
+        var path_gif = "{% static 'images/loading.gif' %}";
+        var loading = '<center><img src="'+path_gif+'" alt=""></center>';
+    </script>
     <!-- End custom js for this page-->
     {% block js %}
     {% endblock %}

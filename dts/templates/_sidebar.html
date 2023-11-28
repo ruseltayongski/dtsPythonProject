@@ -9,32 +9,48 @@
           </div>
           <div class="sidebar-profile-name">
             <p class="sidebar-name">
-              Kenneth Osborne
+              {{ user.first_name|default:'' }} {{ user.last_name|default:'' }}
             </p>
             <p class="sidebar-designation">
               Welcome
             </p>
           </div>
         </div>
-        <div class="nav-search">
-          <div class="input-group">
-            <input type="text" class="form-control" placeholder="Type to search..." aria-label="search" aria-describedby="search">
-            <div class="input-group-append">
-              <span class="input-group-text" id="search">
-                <i class="typcn typcn-zoom"></i>
-              </span>
-            </div>
-          </div>
-        </div>
-        <p class="sidebar-menu-title">Dash menu</p>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="index.html">
+      <li class="nav-item {% if request.path == '/' %}active{% endif %}">
+        <a class="nav-link" href="{% url 'home' %}">
           <i class="typcn typcn-device-desktop menu-icon"></i>
-          <span class="menu-title">Dashboard <span class="badge badge-primary ml-3">New</span></span>
+          <span class="menu-title">
+            Dashboard
+            <!--<span class="badge badge-primary ml-3">New</span>-->
+          </span>
         </a>
       </li>
       <li class="nav-item">
+        <a class="nav-link" href="{% url 'documents' %}">
+          <i class="typcn typcn-device-desktop menu-icon"></i>
+          <span class="menu-title">Documents </span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'documents' %}">
+          <i class="typcn typcn-device-desktop menu-icon"></i>
+          <span class="menu-title">Incoming </span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'documents' %}">
+          <i class="typcn typcn-device-desktop menu-icon"></i>
+          <span class="menu-title">Outgoing </span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'documents' %}">
+          <i class="typcn typcn-device-desktop menu-icon"></i>
+          <span class="menu-title">End Cycle </span>
+        </a>
+      </li>
+      <!--<li class="nav-item">
         <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
           <i class="typcn typcn-briefcase menu-icon"></i>
           <span class="menu-title">UI Elements</span>
@@ -127,14 +143,14 @@
           <i class="typcn typcn-document-text menu-icon"></i>
           <span class="menu-title">Documentation</span>
         </a>
-      </li>
+      </li>-->
     </ul>
     <ul class="sidebar-legend">
       <li>
-        <p class="sidebar-menu-title">Category</p>
+        <p class="sidebar-menu-title">Document Status</p>
       </li>
-      <li class="nav-item"><a href="#" class="nav-link">#Sales</a></li>
-      <li class="nav-item"><a href="#" class="nav-link">#Marketing</a></li>
-      <li class="nav-item"><a href="#" class="nav-link">#Growth</a></li>
+      <li class="nav-item"><a href="#" class="nav-link">#Pending</a></li>
+      <li class="nav-item"><a href="#" class="nav-link">#Approved</a></li>
+      <li class="nav-item"><a href="#" class="nav-link">#End-Cycle</a></li>
     </ul>
 </nav>
