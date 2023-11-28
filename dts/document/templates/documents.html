@@ -78,5 +78,8 @@
 {% endblock %}
 
 {% block js %}
+    <script>
+        var create_document_url = "{% url 'create_document' %}";
+    </script>
     <script src="{% static 'script/document.js' %}"></script>
 {% endblock %}
