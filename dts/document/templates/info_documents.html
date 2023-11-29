@@ -1,0 +1,24 @@
+{% load static %}
+<form method="POST" action="{% url 'update_document' document_id=document.id %}">
+    {% csrf_token %}
+    <div class="modal-body">
+        <p>
+            <label>Route No:</label><br>
+            &emsp;<strong class="text-info">{{ document.route_no }}</strong>
+        </p>
+        <p>
+            <label>Created By:</label><br>
+            &emsp;<strong class="text-info">{{ document.created_by }}</strong>
+        </p>
+        <p>
+            <label>Created Date:</label><br>
+            &emsp;<strong class="text-info">{{ document.created|date:"Y-m-d" }} {{ document.created|time:"g:i:s A" }}</strong>
+        </p>
+        {{ form.as_p }}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary btn-fw" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-info btn-fw">Delete</button>
+        <button type="submit" class="btn btn-info">Update</button>
+    </div>
+</form>

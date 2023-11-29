@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{% static 'css/vertical-layout-light/style.css' %}">
     <!-- endinject -->
     <link rel="shortcut icon" href="{% static 'images/dts_logo.png' %}" />
+    <link rel="stylesheet" href="{% static 'Lobibox/lobibox.css' %}"/>
     {% block css %}
     {% endblock %}
 </head>
@@ -55,7 +56,8 @@
     <script src="{% static 'vendors/chart.js/Chart.min.js' %}"></script>
     <!-- End plugin js for this page -->
     <!-- Custom js for this page-->
-    <script src="{% static 'js/dashboard.js' %}?v=1"></script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    <script src="{% static 'Lobibox/lobibox.js' %}"></script>
     <script>
         var path_gif = "{% static 'images/loading.gif' %}";
         var loading = '<center><img src="'+path_gif+'" alt=""></center>';

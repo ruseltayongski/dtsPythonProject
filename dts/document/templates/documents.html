@@ -2,7 +2,11 @@
 {% load static %}
 
 {% block css %}
-
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -13,45 +17,118 @@
                 <div class="card">
                     <div class="card-body">
                         <form method="GET" action="">
-                        <div class="input-group float-right w-50" style="min-width: 600px;">
-                            <input type="text" class="form-control" name="keyword" placeholder="Patient name" value="" aria-label="Route no..">
-                                <div class="input-group-append">
-                                <button class="btn btn-sm btn-info" type="submit">Search</button>
-                                <button class="btn btn-sm btn-warning text-white" type="submit" name="viewAll" value="viewAll">View All</button>
-                                <button type="button" href="#create_dts" onclick="createPatient()" data-backdrop="static" data-toggle="modal" class="btn btn-success btn-md">Create</button>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4 class="card-title">Manage Documents</h4>
+                                    <p class="card-description">
+                                        DTS
+                                    </p>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="input-group mb-3">
+                                        <input type="text" class="form-control" name="q" placeholder="Route no.." value="{{ query|default:'' }}" aria-label="Route no..">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-sm btn-outline-info btn-fw" type="submit"><i class="typcn typcn-zoom text-info"></i>&nbsp;</button>
+                                            <button type="button" href="#create_dts" onclick="createDocument()" data-backdrop="static" data-toggle="modal" class="btn btn-info btn-md">Create</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </form>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>
+                                            Route No
+                                        </th>
+                                        <th>
+                                            Title
+                                        </th>
+                                        <th>
+                                            Content
+                                        </th>
+                                        <th>
+                                            Created By
+                                        </th>
+                                        <th>
+                                            Created At
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for document in documents %}
+                                        <tr>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-info" onclick="trackDocument({{ document.id }})" style="width:95px;"><i class="typcn typcn-chart-line"></i> Track</button><br><br>
+                                                <button type="button" class="btn btn-sm btn-outline-info btn-fw">Release To</button>
+                                            </td>
+                                            <td><h4 class="text-info cursor-pointer" onclick="infoDocument({{ document.id }})">{{ document.route_no }}</h4></td>
+                                            <td>{{ document.title }}</td>
+                                            <td>{{ document.content }}</td>
+                                            <td>
+                                                {{ document.created_by.first_name|default:"" }} {{ document.created_by.last_name|default:"" }}<br>
+                                                <small class="text-info">{{ document.created_by.department }}</small>
+                                            </td>
+                                            <td>
+                                                {{ document.created|date:"Y-m-d" }}<br>
+                                                <small class="text-info">{{ document.created|time:"g:i:s A" }}</small>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
-                    </form>
-                    <h4 class="card-title">Manage Documents</h4>
-                    <p class="card-description">
-                        DTS
-                    </p>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>
-                                        Route No
-                                    </th>
-                                    <th>
-                                        Title
-                                    </th>
-                                    <th>
-                                        Content
-                                    </th>
-                                    <th>
-                                        Created By
-                                    </th>
-                                    <th>
-                                        Created At
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
+                        <div class="mt-5">
+                            <ul class="pagination">
+                                {% if documents.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1" aria-label="First">
+                                            ««
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ documents.previous_page_number }}" aria-label="Previous">
+                                            «
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link" aria-hidden="true">‹</span>
+                                    </li>
+                                {% endif %}
+
+                                {% for i in documents.paginator.page_range %}
+                                    {% if documents.number == i %}
+                                        <li class="page-item active" aria-current="page">
+                                            <span class="page-link">{{ i }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if documents.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ documents.next_page_number }}" aria-label="Next">
+                                            »
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ documents.paginator.num_pages }}" aria-label="Last">
+                                            »»
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link" aria-hidden="true">›</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -59,7 +136,6 @@
     </div>
     <!-- content-wrapper ends -->
 
-    <input type="hidden" id="dts_view" value="">
     <div class="modal fade" id="create_dts" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -75,11 +151,55 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="track_dts" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="max-width: 1000px;" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal_body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="info_dts" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title text-white"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal_body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block js %}
+    {% if messages %}
+        {% for message in messages %}
+            <script>
+                Lobibox.notify('success', {
+                    msg: '{{ message }}'
+                });
+            </script>
+        {% endfor %}
+    {% endif %}
     <script>
         var create_document_url = "{% url 'create_document' %}";
+        var track_document_url = "{% url 'track_document' pk=123 %}";
+        var update_document_url = "{% url 'update_document' document_id=123 %}";
     </script>
     <script src="{% static 'script/document.js' %}"></script>
 {% endblock %}
