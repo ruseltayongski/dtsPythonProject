@@ -76,12 +76,49 @@ def update_document(request, document_id):
             document = form.save(commit=False)
             document.save()
 
+            tracking = Tracking.objects.filter(document_id=document_id).first()
+            tracking.remarks = document.title
+            tracking.save()
+
             messages.success(request, 'Successfully updated document!')
             return redirect(request.META.get('HTTP_REFERER', '/'))
     else:
         form = DocumentForm(instance=document)
 
     return render(request, 'info_documents.html', {'form': form, 'document': document})
+
+
+def delete_document(request):
+    document_id = request.POST.get('document_id')
+    try:
+        document = Document.objects.get(pk=document_id)
+        route_no = document.route_no
+        document.delete()
+
+        messages.error(request, f"Document with ROUTE NO: {route_no} has been deleted successfully.")
+    except Document.DoesNotExist:
+        messages.error(request, f"Document with id {document_id} does not exist.")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+def track_document(request, pk):
+    query = Q()
+    if pk.isdigit():
+        pk_value = int(pk)
+        query |= Q(document_id=pk_value)
+    else:
+        pk_value = pk
+        query |= Q(route_no=pk_value)
+
+    tracking = Tracking.objects.filter(query).all()
+
+    for track in tracking:
+        track.duration = get_duration(track.created)
+
+    return render(request, 'track_documents.html', {'tracking': tracking})
 
 
 def get_duration(created):
@@ -102,20 +139,3 @@ def get_duration(created):
     else:
         months = int(delta.total_seconds() / 2592000)
         return f'{months} {"month" if months == 1 else "months"} ago'
-
-
-def track_document(request, pk):
-    query = Q()
-    if pk.isdigit():
-        pk_value = int(pk)
-        query |= Q(document_id=pk_value)
-    else:
-        pk_value = pk
-        query |= Q(route_no=pk_value)
-
-    tracking = Tracking.objects.filter(query).all()
-
-    for track in tracking:
-        track.duration = get_duration(track.created)
-
-    return render(request, 'track_documents.html', {'tracking': tracking})

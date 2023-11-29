@@ -18,7 +18,7 @@
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-outline-primary btn-fw" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-outline-info btn-fw">Delete</button>
+        <button type="button" class="btn btn-outline-info btn-fw" onclick="deleteDocument('{{ document.id }}','{{ document.route_no }}')" href="#delete_dts" data-backdrop="static" data-toggle="modal">Delete</button>
         <button type="submit" class="btn btn-info">Update</button>
     </div>
 </form>

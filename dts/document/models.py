@@ -15,10 +15,12 @@ class Document(models.Model):
     updated = models.DateTimeField(auto_now=True, null=True, editable=False)
 
     def save(self, *args, **kwargs):
-        current_user_id = self.created_by.id if self.created_by else 'unknown'
-        timestamp = datetime.now().strftime('%m%d%H%M%S')
-        random_numbers = ''.join(str(randint(1, 9)) for _ in range(3))
-        self.route_no = f"{datetime.now().strftime('%Y-')}{current_user_id}{timestamp}{random_numbers}"
+        if self.pk is None:
+            current_user_id = self.created_by.id if self.created_by else 'unknown'
+            timestamp = datetime.now().strftime('%m%d%H%M%S')
+            random_numbers = ''.join(str(randint(1, 9)) for _ in range(3))
+            self.route_no = f"{datetime.now().strftime('%Y-')}{current_user_id}{timestamp}{random_numbers}"
+
         super().save(*args, **kwargs)
 
     def __str__(self):

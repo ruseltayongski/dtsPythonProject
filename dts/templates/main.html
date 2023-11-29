@@ -38,6 +38,7 @@
         <!-- page-body-wrapper ends -->
     </div>
     <!-- container-scroller -->
+    {% include '_modal.html' %}
 
     <!-- base:js -->
     <script src="{% static 'vendors/js/vendor.bundle.base.js' %}"></script>
@@ -57,7 +58,7 @@
     <!-- End plugin js for this page -->
     <!-- Custom js for this page-->
     <script src="{% static 'js/dashboard.js' %}"></script>
-    <script src="{% static 'Lobibox/lobibox.js' %}"></script>
+    <script src="{% static 'Lobibox/lobibox.js' %}?v=1"></script>
     <script>
         var path_gif = "{% static 'images/loading.gif' %}";
         var loading = '<center><img src="'+path_gif+'" alt=""></center>';

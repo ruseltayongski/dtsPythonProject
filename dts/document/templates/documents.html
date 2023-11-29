@@ -6,6 +6,10 @@
     .cursor-pointer {
         cursor: pointer;
     }
+    #route_no_individual {
+        margin-left: 5px;
+        font-size: 12pt;
+    }
 </style>
 {% endblock %}
 
@@ -35,51 +39,57 @@
                                 </div>
                             </div>
                         </form>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>
-                                            Route No
-                                        </th>
-                                        <th>
-                                            Title
-                                        </th>
-                                        <th>
-                                            Content
-                                        </th>
-                                        <th>
-                                            Created By
-                                        </th>
-                                        <th>
-                                            Created At
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for document in documents %}
+                        {% if documents %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
                                         <tr>
-                                            <td width="5%">
-                                                <button type="button" class="btn btn-sm btn-info" onclick="trackDocument({{ document.id }})" style="width:95px;"><i class="typcn typcn-chart-line"></i> Track</button><br><br>
-                                                <button type="button" class="btn btn-sm btn-outline-info btn-fw">Release To</button>
-                                            </td>
-                                            <td><h4 class="text-info cursor-pointer" onclick="infoDocument({{ document.id }})">{{ document.route_no }}</h4></td>
-                                            <td>{{ document.title }}</td>
-                                            <td>{{ document.content }}</td>
-                                            <td>
-                                                {{ document.created_by.first_name|default:"" }} {{ document.created_by.last_name|default:"" }}<br>
-                                                <small class="text-info">{{ document.created_by.department }}</small>
-                                            </td>
-                                            <td>
-                                                {{ document.created|date:"Y-m-d" }}<br>
-                                                <small class="text-info">{{ document.created|time:"g:i:s A" }}</small>
-                                            </td>
+                                            <th></th>
+                                            <th>
+                                                Route No
+                                            </th>
+                                            <th>
+                                                Title
+                                            </th>
+                                            <th>
+                                                Content
+                                            </th>
+                                            <th>
+                                                Created By
+                                            </th>
+                                            <th>
+                                                Created At
+                                            </th>
                                         </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {% for document in documents %}
+                                            <tr>
+                                                <td width="5%">
+                                                    <button type="button" class="btn btn-sm btn-info" onclick="trackDocument({{ document.id }}, '{{ document.route_no }}')" style="width:95px;"><i class="typcn typcn-chart-line"></i> Track</button><br><br>
+                                                    <button type="button" class="btn btn-sm btn-outline-info btn-fw">Release To</button>
+                                                </td>
+                                                <td><h4 class="text-info cursor-pointer" onclick="infoDocument({{ document.id }})">{{ document.route_no }}</h4></td>
+                                                <td>{{ document.title }}</td>
+                                                <td>{{ document.content }}</td>
+                                                <td>
+                                                    {{ document.created_by.first_name|default:"" }} {{ document.created_by.last_name|default:"" }}<br>
+                                                    <small class="text-info">{{ document.created_by.department }}</small>
+                                                </td>
+                                                <td>
+                                                    {{ document.created|date:"Y-m-d" }}<br>
+                                                    <small class="text-info">{{ document.created|time:"g:i:s A" }}</small>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="typcn typcn-info"></i>&nbsp; No document found
+                            </div>
+                        {% endif %}
                         <div class="mt-5">
                             <ul class="pagination">
                                 {% if documents.has_previous %}
@@ -161,6 +171,11 @@
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
+                <div class="container">
+                    <div class="alert alert-info mt-3">
+                        <h3 class="mb-0"><span>Route No:</span> <span id="route_no_individual"></span></h3>
+                    </div>
+                </div>
                 <div class="modal_body">
 
                 </div>
@@ -184,18 +199,52 @@
         </div>
     </div>
 
+    <div class="modal fade" id="delete_dts" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title text-white"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <form method="POST" action="{% url 'delete_document' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" name="document_id" id="document_id_delete">
+                        <p class="alert alert-info">Are you sure you want to delete this document with route number <span id="document_route_no"></span>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-outline-info btn-fw" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-sm btn-primary">Confirm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block js %}
+
     {% if messages %}
         {% for message in messages %}
-            <script>
-                Lobibox.notify('success', {
-                    msg: '{{ message }}'
-                });
-            </script>
+            {% if message.tags == 'success' %}
+                <script>
+                    Lobibox.notify('success', {
+                        msg: '{{ message }}'
+                    });
+                </script>
+            {% else %}
+                <script>
+                    Lobibox.notify('error', {
+                        msg: '{{ message }}'
+                    });
+                </script>
+            {% endif %}
         {% endfor %}
     {% endif %}
+
     <script>
         var create_document_url = "{% url 'create_document' %}";
         var track_document_url = "{% url 'track_document' pk=123 %}";
