@@ -1,0 +1,24 @@
+{% load static %}
+<form method="POST" action="{% url 'release_document' document_id=document_id %}">
+    {% csrf_token %}
+    <div class="modal-body">
+        <input type="hidden" id="release_document_id" value="{{ document_id }}">
+        <p>
+            <label>Department:</label>
+            <select name="departmentasdasd" class="form-control" required>
+                <option value="">Select Department</option>
+                {% for department in departments %}
+                    <option value="{{ department.id }}">{{ department.description }}</option>
+                {% endfor %}
+            </select>
+        </p>
+        <p>
+            <label>Remarks:</label>
+            <textarea name="remarks" cols="40" rows="10" class="form-control"></textarea>
+          </p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-info btn-fw" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-info">Release</button>
+    </div>
+</form>

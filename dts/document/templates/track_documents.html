@@ -35,9 +35,27 @@
                         </td>
                         <td>{{ track.duration }}</td>
                         <td>
-                            <span class="badge badge-info p-2 booking_status text-white">
-                                {{ track.status }}
-                            </span>
+                            {% if track.status == 'created' %}
+                                <span class="badge badge-info p-2 booking_status text-white">
+                                    {{ track.status }}
+                                </span>
+                            {% elif track.status == 'released' %}
+                                <span class="badge badge-primary p-2 booking_status text-white">
+                                    {{ track.status }}
+                                </span>
+                            {% elif track.status == 'accepted' %}
+                                <span class="badge badge-success p-2 booking_status text-white">
+                                    {{ track.status }}
+                                </span>
+                            {% elif track.status == 'end-cycle' %}
+                                <span class="badge badge-warning p-2 booking_status text-white">
+                                    {{ track.status }}
+                                </span>
+                            {% else %}
+                                <span class="badge badge-secondary p-2 booking_status text-white">
+                                    {{ track.status }}
+                                </span>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

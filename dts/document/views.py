@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.contrib import messages
 from datetime import datetime, timedelta
 from django.utils import timezone
+from login.models import Department
 
 
 # Create your views here.
@@ -20,13 +21,12 @@ def home(request):
 def documents(request):
     query = request.GET.get('q')
     data = Document.objects.all()
-
     if query:
         data = data.filter(Q(route_no__icontains=query))
 
     data = data.order_by('-id')
 
-    items_per_page = 3
+    items_per_page = 15
     paginator = Paginator(data, items_per_page)
 
     page = request.GET.get('page')
@@ -119,6 +119,29 @@ def track_document(request, pk):
         track.duration = get_duration(track.created)
 
     return render(request, 'track_documents.html', {'tracking': tracking})
+
+
+def release_document(request, document_id):
+    if request.method == 'POST':
+        document = Document.objects.get(pk=document_id)
+        document.status = "released"
+        document.save()
+
+        Tracking.objects.create(
+            route_no=document.route_no,
+            status=document.status,
+            document=document,
+            created_by=request.user,
+            released_to=request.user.department,
+            remarks=request.POST.get('remarks')
+        )
+
+        messages.success(request, 'Successfully released document!')
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    departments = Department.objects.exclude(pk=request.user.department.id)
+    print(departments)
+    return render(request, 'release_documents.html', {'document_id': document_id, 'departments': departments})
 
 
 def get_duration(created):

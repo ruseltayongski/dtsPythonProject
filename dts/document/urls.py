@@ -8,4 +8,5 @@ urlpatterns = [
     path('update_document/<document_id>', views.update_document, name="update_document"),
     path('delete_document', views.delete_document, name="delete_document"),
     path('track_document/<pk>', views.track_document, name="track_document"),
+    path('release_document/<document_id>', views.release_document, name="release_document"),
 ]

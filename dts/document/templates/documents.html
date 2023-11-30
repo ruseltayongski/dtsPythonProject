@@ -67,7 +67,9 @@
                                             <tr>
                                                 <td width="5%">
                                                     <button type="button" class="btn btn-sm btn-info" onclick="trackDocument({{ document.id }}, '{{ document.route_no }}')" style="width:95px;"><i class="typcn typcn-chart-line"></i> Track</button><br><br>
-                                                    <button type="button" class="btn btn-sm btn-outline-info btn-fw">Release To</button>
+                                                    {% if document.status == 'created' %}
+                                                    <button type="button" class="btn btn-sm btn-outline-info btn-fw" onclick="releaseDocument({{ document.id }})">Release To</button>
+                                                    {% endif %}
                                                 </td>
                                                 <td><h4 class="text-info cursor-pointer" onclick="infoDocument({{ document.id }})">{{ document.route_no }}</h4></td>
                                                 <td>{{ document.title }}</td>
@@ -223,6 +225,22 @@
         </div>
     </div>
 
+    <div class="modal fade" id="release_dts" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title text-white"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal_body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block js %}
@@ -249,6 +267,7 @@
         var create_document_url = "{% url 'create_document' %}";
         var track_document_url = "{% url 'track_document' pk=123 %}";
         var update_document_url = "{% url 'update_document' document_id=123 %}";
+        var release_document_url = "{% url 'release_document' document_id=123 %}";
     </script>
     <script src="{% static 'script/document.js' %}"></script>
 {% endblock %}
