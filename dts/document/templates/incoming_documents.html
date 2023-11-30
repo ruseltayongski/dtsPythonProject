@@ -1,0 +1,219 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block css %}
+<style>
+    #route_no_individual {
+        margin-left: 5px;
+        font-size: 12pt;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="content-wrapper">
+        {% include '_banner.html' %}
+        <div class="row mt-4">
+            <div class="col-lg-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="GET" action="">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4 class="card-title">Incoming Documents</h4>
+                                    <p class="card-description">
+                                        DTS
+                                    </p>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="input-group mb-3">
+                                        <input type="text" class="form-control" name="q" placeholder="Route no.." value="{{ query|default:'' }}" aria-label="Route no..">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-sm btn-outline-info btn-fw" type="submit"><i class="typcn typcn-zoom text-info"></i>&nbsp;</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        {% if documents %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>
+                                                Route No
+                                            </th>
+                                            <th>
+                                                Title
+                                            </th>
+                                            <th>
+                                                Content
+                                            </th>
+                                            <th>
+                                                Created By
+                                            </th>
+                                            <th>
+                                                Created At
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for document in documents %}
+                                            <tr>
+                                                <td width="5%">
+                                                    <button type="button" class="btn btn-sm btn-info" onclick="trackDocument({{ document.id }}, '{{ document.route_no }}')" style="width:90px;"><i class="typcn typcn-chart-line"></i> Track</button><br><br>
+                                                    <button type="button" class="btn btn-sm btn-outline-info btn-fw" onclick="acceptDocument({{ document.id }}, '{{ document.route_no }}')"><i class="typcn typcn-archive"></i> Accept</button>
+                                                </td>
+                                                <td><h4 class="text-info cursor-pointer">{{ document.route_no }}</h4></td>
+                                                <td>{{ document.title }}</td>
+                                                <td>{{ document.content }}</td>
+                                                <td>
+                                                    {{ document.created_by.first_name|default:"" }} {{ document.created_by.last_name|default:"" }}<br>
+                                                    <small class="text-info">{{ document.created_by.department }}</small>
+                                                </td>
+                                                <td>
+                                                    {{ document.created|date:"Y-m-d" }}<br>
+                                                    <small class="text-info">{{ document.created|time:"g:i:s A" }}</small>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="typcn typcn-info"></i>&nbsp; No document found
+                            </div>
+                        {% endif %}
+                        <div class="mt-5">
+                            <ul class="pagination">
+                                {% if documents.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1" aria-label="First">
+                                            ««
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ documents.previous_page_number }}" aria-label="Previous">
+                                            «
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link" aria-hidden="true">‹</span>
+                                    </li>
+                                {% endif %}
+
+                                {% for i in documents.paginator.page_range %}
+                                    {% if documents.number == i %}
+                                        <li class="page-item active" aria-current="page">
+                                            <span class="page-link">{{ i }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if documents.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ documents.next_page_number }}" aria-label="Next">
+                                            »
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ documents.paginator.num_pages }}" aria-label="Last">
+                                            »»
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link" aria-hidden="true">›</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- content-wrapper ends -->
+
+    <div class="modal fade" id="track_dts" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="max-width: 1000px;" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="container">
+                    <div class="alert alert-info mt-3">
+                        <h3 class="mb-0"><span>Route No:</span> <span id="route_no_individual"></span></h3>
+                    </div>
+                </div>
+                <div class="modal_body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="accept_dts" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title text-white"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <form method="POST" action="{% url 'accept_document' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" name="document_id" id="document_id_accept">
+                        <p>
+                            <label>Remarks:</label>
+                            <textarea name="remarks" cols="40" rows="10" class="form-control"></textarea>
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-outline-info btn-fw" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-sm btn-info">Accept</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                <script>
+                    Lobibox.notify('success', {
+                        msg: '{{ message }}'
+                    });
+                </script>
+            {% else %}
+                <script>
+                    Lobibox.notify('warning', {
+                        msg: '{{ message }}'
+                    });
+                </script>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    <script>
+        var track_document_url = "{% url 'track_document' pk=123 %}";
+    </script>
+    <script src="{% static 'script/incoming_document.js' %}"></script>
+{% endblock %}

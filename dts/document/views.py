@@ -5,7 +5,6 @@ from .forms import DocumentForm
 from .models import Document, Tracking
 from django.db.models import Q
 from django.contrib import messages
-from datetime import datetime, timedelta
 from django.utils import timezone
 from login.models import Department
 
@@ -20,7 +19,7 @@ def home(request):
 @login_required(login_url='login')
 def documents(request):
     query = request.GET.get('q')
-    data = Document.objects.all()
+    data = Document.objects.filter(Q(created_by__department=request.user.department)).all()
     if query:
         data = data.filter(Q(route_no__icontains=query))
 
@@ -40,7 +39,7 @@ def documents(request):
     return render(request, 'documents.html', {'documents': data, 'query': query})
 
 
-def create_document(request):
+def createDocument(request):
     if request.method == 'POST':
         form = DocumentForm(request.POST)
         if form.is_valid():
@@ -67,7 +66,7 @@ def create_document(request):
     return render(request, 'create_documents.html', {'form': form})
 
 
-def update_document(request, document_id):
+def updateDocument(request, document_id):
     document = get_object_or_404(Document, id=document_id)
 
     if request.method == 'POST':
@@ -88,7 +87,7 @@ def update_document(request, document_id):
     return render(request, 'info_documents.html', {'form': form, 'document': document})
 
 
-def delete_document(request):
+def deleteDocument(request):
     document_id = request.POST.get('document_id')
     try:
         document = Document.objects.get(pk=document_id)
@@ -104,7 +103,7 @@ def delete_document(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-def track_document(request, pk):
+def trackDocument(request, pk):
     query = Q()
     if pk.isdigit():
         pk_value = int(pk)
@@ -121,10 +120,14 @@ def track_document(request, pk):
     return render(request, 'track_documents.html', {'tracking': tracking})
 
 
-def release_document(request, document_id):
+def releaseDocument(request, document_id):
     if request.method == 'POST':
+        remarks = request.POST.get('remarks')
+        released_to = Department.objects.get(pk=request.POST.get('released_to'))
+
         document = Document.objects.get(pk=document_id)
         document.status = "released"
+        document.released_to = released_to
         document.save()
 
         Tracking.objects.create(
@@ -132,16 +135,90 @@ def release_document(request, document_id):
             status=document.status,
             document=document,
             created_by=request.user,
-            released_to=request.user.department,
-            remarks=request.POST.get('remarks')
+            released_to=released_to,
+            remarks=remarks
         )
 
         messages.success(request, 'Successfully released document!')
         return redirect(request.META.get('HTTP_REFERER', '/'))
 
     departments = Department.objects.exclude(pk=request.user.department.id)
-    print(departments)
     return render(request, 'release_documents.html', {'document_id': document_id, 'departments': departments})
+
+
+def incomingDocuments(request):
+    query = request.GET.get('q')
+    data = Document.objects.filter(released_to=request.user.department, status='released').all()
+    if query:
+        data = data.filter(Q(route_no__icontains=query))
+
+    data = data.order_by('-id')
+
+    items_per_page = 15
+    paginator = Paginator(data, items_per_page)
+
+    page = request.GET.get('page')
+    try:
+        data = paginator.page(page)
+    except PageNotAnInteger:
+        data = paginator.page(1)
+    except EmptyPage:
+        data = paginator.page(paginator.num_pages)
+
+    return render(request, 'incoming_documents.html', {'documents': data, 'query': query})
+
+
+def acceptDocument(request):
+    try:
+        document_id = request.POST.get('document_id')
+        remarks = request.POST.get('remarks')
+        accepted_by = Department.objects.get(pk=request.user.department.id)
+
+        document = Document.objects.get(pk=document_id)
+        document.status = "accepted"
+        document.released_to = None
+        document.accepted_by = accepted_by
+        document.save()
+
+        Tracking.objects.create(
+            route_no=document.route_no,
+            status=document.status,
+            document=document,
+            created_by=request.user,
+            accepted_by=accepted_by,
+            remarks=remarks
+        )
+
+        messages.success(request, f"Document with ROUTE NO: {document.route_no} has been accepted successfully.")
+    except Document.DoesNotExist:
+        messages.error(request, f"Document with id {document_id} does not exist.")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
+        print(f"An error occurred: {e}")
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+def outgoingDocuments(request):
+    query = request.GET.get('q')
+    data = Document.objects.filter(accepted_by=request.user.department, status='accepted').all()
+    if query:
+        data = data.filter(Q(route_no__icontains=query))
+
+    data = data.order_by('-id')
+
+    items_per_page = 15
+    paginator = Paginator(data, items_per_page)
+
+    page = request.GET.get('page')
+    try:
+        data = paginator.page(page)
+    except PageNotAnInteger:
+        data = paginator.page(1)
+    except EmptyPage:
+        data = paginator.page(paginator.num_pages)
+
+    return render(request, 'outgoing_documents.html', {'documents': data, 'query': query})
 
 
 def get_duration(created):

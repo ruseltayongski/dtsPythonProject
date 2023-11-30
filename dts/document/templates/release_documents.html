@@ -5,7 +5,7 @@
         <input type="hidden" id="release_document_id" value="{{ document_id }}">
         <p>
             <label>Department:</label>
-            <select name="departmentasdasd" class="form-control" required>
+            <select name="released_to" class="form-control" required>
                 <option value="">Select Department</option>
                 {% for department in departments %}
                     <option value="{{ department.id }}">{{ department.description }}</option>
@@ -15,7 +15,7 @@
         <p>
             <label>Remarks:</label>
             <textarea name="remarks" cols="40" rows="10" class="form-control"></textarea>
-          </p>
+        </p>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-outline-info btn-fw" data-dismiss="modal">Close</button>

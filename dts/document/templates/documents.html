@@ -32,7 +32,7 @@
                                     <div class="input-group mb-3">
                                         <input type="text" class="form-control" name="q" placeholder="Route no.." value="{{ query|default:'' }}" aria-label="Route no..">
                                         <div class="input-group-append">
-                                            <button class="btn btn-sm btn-outline-info btn-fw" type="submit"><i class="typcn typcn-zoom text-info"></i>&nbsp;</button>
+                                            <button class="btn btn-sm btn-outline-info btn-fw" type="submit"><i class="typcn typcn-zoom"></i>&nbsp;</button>
                                             <button type="button" href="#create_dts" onclick="createDocument()" data-backdrop="static" data-toggle="modal" class="btn btn-info btn-md">Create</button>
                                         </div>
                                     </div>
@@ -214,7 +214,7 @@
                     {% csrf_token %}
                     <div class="modal-body">
                         <input type="hidden" name="document_id" id="document_id_delete">
-                        <p class="alert alert-info">Are you sure you want to delete this document with route number <span id="document_route_no"></span>?</p>
+                        <p class="alert alert-info"><i class="typcn typcn-info"></i>&nbsp; Are you sure you want to delete this document with route number <span id="document_route_no"></span>?</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-sm btn-outline-info btn-fw" data-dismiss="modal">Close</button>
@@ -255,7 +255,7 @@
                 </script>
             {% else %}
                 <script>
-                    Lobibox.notify('error', {
+                    Lobibox.notify('warning', {
                         msg: '{{ message }}'
                     });
                 </script>
