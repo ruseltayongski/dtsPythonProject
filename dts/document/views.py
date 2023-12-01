@@ -7,7 +7,10 @@ from django.db.models import Q
 from django.contrib import messages
 from django.utils import timezone
 from login.models import Department
-from django.db.models import Count
+from django.db.models import Count, F
+from django.db.models.functions import TruncDate
+from datetime import datetime, timedelta
+from django.http import JsonResponse
 
 
 # Create your views here.
@@ -16,7 +19,7 @@ from django.db.models import Count
 def home(request):
     current_user = request.user
 
-    trackings = Tracking.objects.filter().all().order_by('-id')
+    trackings = Tracking.objects.filter(created_by=request.user.id, document_id__isnull=False).all().order_by('-id')
     items_per_page = 4
     paginator = Paginator(trackings, items_per_page)
 
@@ -28,11 +31,32 @@ def home(request):
     except EmptyPage:
         trackings = paginator.page(paginator.num_pages)
 
-    bar_chart_trackings = Tracking.objects.values('status').annotate(count=Count('id'))
+    bar_chart_trackings = Tracking.objects.filter(created_by=request.user.id, document_id__isnull=False).values('status').annotate(count=Count('id'))
     bar_chart = {tracking['status']: tracking['count'] for tracking in bar_chart_trackings}
 
-    return render(request, 'home.html',
-                  {'trackings': trackings, 'bar_chart': bar_chart if 'bar_chart' in locals() else {}})
+    ten_days_ago = datetime.now() - timedelta(days=10)
+
+    date_list = [ten_days_ago + timedelta(days=x) for x in range(11)]
+
+    result = Document.objects.filter(created__gte=ten_days_ago, created_by=request.user.id) \
+        .annotate(date=TruncDate('created')) \
+        .values('date') \
+        .annotate(count=Count('id')) \
+        .order_by('date')
+
+    count_by_date = {entry['date'].strftime('%Y-%m-%d'): entry['count'] for entry in result}
+
+    linechart = [
+        {'x': d.strftime('%Y-%m-%d'), 'y': count_by_date.get(d.strftime('%Y-%m-%d'), 0)}
+        for d in date_list
+    ]
+
+    #return JsonResponse(list(linechart), safe=False)
+    return render(request, 'home.html', {
+        'trackings': trackings,
+        'bar_chart': bar_chart if 'bar_chart' in locals() else {},
+        'linechart': linechart
+    })
 
 
 @login_required(login_url='login')
@@ -76,7 +100,7 @@ def createDocument(request):
                 remarks=document.title
             )
 
-            messages.success(request, 'Successfully saved document!')
+            messages.success(request, {'response': 'Successfully saved document!'})
 
             return redirect(request.META.get('HTTP_REFERER', '/'))
     else:
@@ -95,10 +119,11 @@ def updateDocument(request, document_id):
             document.save()
 
             tracking = Tracking.objects.filter(document_id=document_id).first()
-            tracking.remarks = document.title
-            tracking.save()
+            if tracking:
+                tracking.remarks = document.title
+                tracking.save()
 
-            messages.success(request, 'Successfully updated document!')
+            messages.success(request, {'response': 'Successfully updated document!'})
             return redirect(request.META.get('HTTP_REFERER', '/'))
     else:
         form = DocumentForm(instance=document)
@@ -113,7 +138,7 @@ def deleteDocument(request):
         route_no = document.route_no
         document.delete()
 
-        messages.error(request, f"Document with ROUTE NO: {route_no} has been deleted successfully.")
+        messages.error(request, {'response': f"Document with ROUTE NO: {route_no} has been deleted successfully."})
     except Document.DoesNotExist:
         messages.error(request, f"Document with id {document_id} does not exist.")
     except Exception as e:
@@ -131,7 +156,7 @@ def trackDocument(request, pk):
         pk_value = pk
         query |= Q(route_no=pk_value)
 
-    tracking = Tracking.objects.filter(query).all()
+    tracking = Tracking.objects.filter(query, document_id__isnull=False).all()
 
     for track in tracking:
         track.duration = get_duration(track.created)
@@ -158,7 +183,18 @@ def releaseDocument(request, document_id):
             remarks=remarks
         )
 
-        messages.success(request, 'Successfully released document!')
+        messages.success(request, {
+            'response': 'Successfully released document!',
+            'data': {
+                    'status': document.status,
+                    'department': request.POST.get('released_to'),
+                    'route_no': document.route_no,
+                    'user_released': request.user.first_name + " " + request.user.last_name,
+                    'department_released': released_to.description,
+                    'remarks': remarks
+                }
+            }
+        )
         return redirect(request.META.get('HTTP_REFERER', '/'))
 
     departments = Department.objects.exclude(pk=request.user.department.id)
@@ -171,7 +207,7 @@ def incomingDocuments(request):
     if query:
         data = data.filter(Q(route_no__icontains=query))
 
-    data = data.order_by('-id')
+    data = data.order_by('-updated')
 
     items_per_page = 15
     paginator = Paginator(data, items_per_page)
@@ -207,8 +243,18 @@ def acceptDocument(request):
             accepted_by=accepted_by,
             remarks=remarks
         )
-
-        messages.success(request, f"Document with ROUTE NO: {document.route_no} has been accepted successfully.")
+        messages.success(request, {
+            'response': f"Document with ROUTE NO: {document.route_no} has been accepted successfully.",
+            'data': {
+                'status': document.status,
+                'department': document.created_by.department.id,
+                'route_no': document.route_no,
+                'user_accepted_id': request.user.id,
+                'user_accepted': request.user.first_name + " " + request.user.last_name,
+                'department_accepted': request.user.department.description,
+                'remarks': remarks
+            }
+        })
     except Document.DoesNotExist:
         messages.error(request, f"Document with id {document_id} does not exist.")
     except Exception as e:
@@ -239,7 +285,7 @@ def cycleEndDocument(request):
             remarks=remarks
         )
 
-        messages.success(request, f"The document with Route No: {document.route_no} has been cycled end successfully.")
+        messages.success(request, {'response': f"The document with Route No: {document.route_no} has been cycled end successfully."})
     except Document.DoesNotExist:
         messages.error(request, f"Document with id {document_id} does not exist.")
     except Exception as e:
@@ -255,7 +301,7 @@ def cycleEndDocs(request):
     if query:
         data = data.filter(Q(route_no__icontains=query))
 
-    data = data.order_by('-id')
+    data = data.order_by('-updated')
 
     items_per_page = 15
     paginator = Paginator(data, items_per_page)
@@ -277,7 +323,7 @@ def outgoingDocuments(request):
     if query:
         data = data.filter(Q(route_no__icontains=query))
 
-    data = data.order_by('-id')
+    data = data.order_by('-updated')
 
     items_per_page = 15
     paginator = Paginator(data, items_per_page)

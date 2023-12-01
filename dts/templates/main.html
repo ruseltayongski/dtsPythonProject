@@ -65,6 +65,116 @@
         var track_document_url = "{% url 'track_document' pk=123 %}";
     </script>
     <script src="{% static 'script/main.js' %}"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js";
+        import { getDatabase, ref, set, push, child, remove, query, limitToLast, onValue } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQDgjRx4FnUQYmlbiGcXWH7kONJN4Tmj4",
+            authDomain: "dtsproject-cf35e.firebaseapp.com",
+            projectId: "dtsproject-cf35e",
+            storageBucket: "dtsproject-cf35e.appspot.com",
+            messagingSenderId: "829057228993",
+            appId: "1:829057228993:web:684b8aeee8cc8aa47a7440",
+            measurementId: "G-GYFTLEGY4R"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        var database = getDatabase();
+
+        // Reference to the database
+        var dbRef = ref(database,'dts');
+
+        window.insertDatabase = (dataToInsert) => {
+            push(dbRef, dataToInsert)
+            .then((pushedDataRef) => {
+                console.log("inserted");
+                if (pushedDataRef.key !== null) {
+                    const dataToRemoveRef = child(dbRef, pushedDataRef.key);
+                    remove(dataToRemoveRef);
+                } else {
+                    console.error('Error: Unable to get key after push.');
+                    Promise.reject('Unable to get key after push.');
+                }
+            })
+            .then(() => {
+
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+        const readFirebase = (current_user_department, system_logo) => {
+            const db = database;
+            const starCountRef = query(ref(db, 'dts'), limitToLast(1));
+            onValue(starCountRef, (snapshot) => {
+                const data = snapshot.val();
+                if(data) {
+                    const itemValue = Object.values(data)[0];
+                    console.log(itemValue);
+                    console.log(current_user_department);
+                    if(itemValue.department == current_user_department && itemValue.status == 'released') {
+                        Lobibox.notify('info', {
+                            title: itemValue.route_no+" was released by "+itemValue.user_released+" / "+itemValue.department_released,
+                            size: 'normal',
+                            delay: false,
+                            closeOnClick: false,
+                            img: system_logo,
+                            msg: itemValue.remarks
+                        });
+                    }
+                    else if(itemValue.department == current_user_department && itemValue.user_accepted_id != current_user_department && itemValue.status == "accepted") {
+                        Lobibox.notify('success', {
+                            title: itemValue.route_no+" was accepted by "+itemValue.user_accepted+" / "+itemValue.department_accepted,
+                            size: 'normal',
+                            delay: false,
+                            closeOnClick: false,
+                            img: system_logo,
+                            msg: itemValue.remarks
+                        });
+                    }
+                }
+            });
+        }
+
+        const current_user_department = {{ user.department.id }}
+        const system_logo = "{% static 'images/dts_logo.png' %}"
+        readFirebase(current_user_department, system_logo);
+    </script>
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                <script>
+                    $( document ).ready(function() {
+                        const msg = {{ message|safe }}
+                        Lobibox.notify('success', {
+                            msg: msg.response
+                        });
+                        if(msg.data) {
+                            if(msg.data.status == 'released' || msg.data.status == 'accepted') {
+                                window.insertDatabase(msg.data);
+                            }
+                        }
+                    });
+                </script>
+            {% else %}
+                <script>
+                    const msg = {{ message|safe }}
+                    Lobibox.notify('warning', {
+                        msg: msg.response
+                    });
+                </script>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     <!-- End custom js for this page-->
     {% block js %}
     {% endblock %}

@@ -33,9 +33,9 @@ window.onload = function() {
 
     var chart1 = new CanvasJS.Chart("chartContainer1", {
         animationEnabled: true,
-        title:{
-            text: "Document's Comprehensive Overview"
-        },
+        /*title:{
+            text: "Last 10 days Created Documents"
+        },*/
         axisX:{
             valueFormatString: "DD MMM",
             crosshair: {
@@ -58,8 +58,8 @@ window.onload = function() {
             type: "area",
             xValueFormatString: "DD MMM",
             yValueFormatString: "##0",
-            dataPoints:
-            [
+            dataPoints: linechart
+            /*[
                 { x: new Date(2017, 0, 3), y: 650 },
                 { x: new Date(2017, 0, 4), y: 700 },
                 { x: new Date(2017, 0, 5), y: 710 },
@@ -74,7 +74,7 @@ window.onload = function() {
                 { x: new Date(2017, 0, 14), y: 869 },
                 { x: new Date(2017, 0, 15), y: 890 },
                 { x: new Date(2017, 0, 16), y: 930 }
-            ]
+            ]*/
         }]
     });
     chart1.render();

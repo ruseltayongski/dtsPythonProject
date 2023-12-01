@@ -193,23 +193,5 @@
 {% endblock %}
 
 {% block js %}
-
-    {% if messages %}
-        {% for message in messages %}
-            {% if message.tags == 'success' %}
-                <script>
-                    Lobibox.notify('success', {
-                        msg: '{{ message }}'
-                    });
-                </script>
-            {% else %}
-                <script>
-                    Lobibox.notify('warning', {
-                        msg: '{{ message }}'
-                    });
-                </script>
-            {% endif %}
-        {% endfor %}
-    {% endif %}
     <script src="{% static 'script/incoming_document.js' %}"></script>
 {% endblock %}
