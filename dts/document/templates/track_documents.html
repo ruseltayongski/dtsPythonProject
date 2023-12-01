@@ -28,7 +28,7 @@
                             {{ track.created_by.first_name|default:"" }} {{ track.created_by.last_name|default:"" }}<br>
                             <small class="text-info">{{ track.created_by.department }}</small>
                         </td>
-                        <td>{{ track.remarks }}</td>
+                        <td width="30%">{{ track.remarks }}</td>
                         <td>
                             {{ track.created|date:"Y-m-d" }}<br>
                             <small class="text-info">{{ track.created|time:"g:i:s A" }}</small>
@@ -47,7 +47,7 @@
                                 <span class="badge badge-success p-2 booking_status text-white">
                                     {{ track.status }}
                                 </span>
-                            {% elif track.status == 'cycle end' %}
+                            {% elif track.status == 'cycled end' %}
                                 <span class="badge badge-warning p-2 booking_status text-white">
                                     {{ track.status }}
                                 </span>

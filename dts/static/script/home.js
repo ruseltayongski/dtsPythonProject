@@ -1,4 +1,5 @@
 window.onload = function() {
+    console.log(bar_chart)
     var options = {
         animationEnabled: true,
         // title: {
@@ -12,11 +13,10 @@ window.onload = function() {
                 indexLabel: "{label} ({y})",
                 yValueFormatString:"#,##0.#"%"",
                 dataPoints: [
-                    {y: 79.45, label: "Google"},
-                    {y: 7.31, label: "Bing"},
-                    {y: 7.06, label: "Baidu"},
-                    {y: 4.91, label: "Yahoo"},
-                    {y: 1.26, label: "Others"}
+                    {y: bar_chart['created']??0, label: "created"},
+                    {y: bar_chart['released']??0, label: "released"},
+                    {y: bar_chart['accepted']??0, label: "accepted"},
+                    {y: bar_chart['cycled end']??0, label: "cycle end"}
                 ]
         }]
     };

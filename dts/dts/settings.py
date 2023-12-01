@@ -75,7 +75,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'document.context_processors.document_count',
                 'document.context_processors.incoming_document_count',
-                'document.context_processors.outgoing_document_count'
+                'document.context_processors.outgoing_document_count',
+                'document.context_processors.cycle_end_document_count'
             ],
         },
     },

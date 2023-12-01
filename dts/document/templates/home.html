@@ -8,11 +8,6 @@
 {% block content %}
     <div class="content-wrapper">
         {% include '_banner.html' %}
-        <!--<div class="row">
-            <div class="col-sm-12">
-              <h3 class="mb-0 font-weight-bold">{{ user.first_name|default:'' }} {{ user.last_name|default:'' }}</h3>
-            </div>
-        </div>-->
         <div class="row mt-4">
             <div class="col-lg-4 d-flex grid-margin stretch-card">
                 <div class="card">
@@ -30,75 +25,128 @@
                       <div class="d-flex flex-wrap justify-content-between">
                           <h4 class="card-title mb-3">Documents Logs</h4>
                       </div>
+                      {% if trackings %}
                       <div class="table-responsive">
                           <table class="table">
                               <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="d-flex">
-                                            <img class="img-sm rounded-circle mb-md-0 mr-2" src="{% static 'images/dts_logo.png' %}" alt="logo">
-                                            <div>
-                                                <div> Name</div>
-                                                <div class="font-weight-bold mt-1">Rusel T. Tayong</div>
+                                {% for track in trackings %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex">
+                                                <div>
+                                                    <div>Route No</div>
+                                                    <div class="font-weight-bold mt-1">{{ track.route_no }}</div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        Status<br>
-                                        <span class="badge badge-primary p-2 booking_status text-white">
-                                            Pending
-                                        </span>
-                                        <!--{% if row.status == 'Pending' %}
-                                            {% with color="warning" message="Pending" %}
-                                                <span class="badge badge-{{ color }} p-2 booking_status text-white">
-                                                    {{ message }}
+                                        </td>
+                                        <td>
+                                            Document Owner
+                                            <div class="font-weight-bold mt-1">{{ track.created_by.first_name|default:'' }} {{ track.created_by.last_name|default:'' }}</div>
+                                        </td>
+                                        <td>
+                                            Transacted Department
+                                            <div class="font-weight-bold mt-1">
+                                                {% if track.status == 'created' %}
+                                                    {{ track.created_by.department }}
+                                                {% elif track.status == 'released' %}
+                                                    {{ track.released_to }}
+                                                {% elif track.status == 'accepted' %}
+                                                    {{ track.accepted_by }}
+                                                {% elif track.status == 'cycled end' %}
+                                                    {{ track.cycle_end_by }}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            Date
+                                            <div class="font-weight-bold  mt-1">
+                                                December 25, 2023
+                                              <!--{{ row.start_date|date:"M j, Y" }}-->
+                                            </div>
+                                        </td>
+                                        <td>
+                                            Status<br>
+                                            {% if track.status == 'created' %}
+                                                <span class="badge badge-info p-2 booking_status text-white">
+                                                    {{ track.status }}
                                                 </span>
-                                            {% endwith %}
-                                        {% elif row.status == 'Approved' %}
-                                            {% with color="success" message="Ongoing" %}
-                                                <span class="badge badge-{{ color }} p-2 booking_status text-white">
-                                                    {{ message }}
+                                            {% elif track.status == 'released' %}
+                                                <span class="badge badge-primary p-2 booking_status text-white">
+                                                    {{ track.status }}
                                                 </span>
-                                            {% endwith %}
-                                        {% elif row.status == 'Completed' %}
-                                            {% with color="success" message="Completed" %}
-                                                <span class="badge badge-{{ color }} p-2 booking_status text-white">
-                                                    {{ message }}
+                                            {% elif track.status == 'accepted' %}
+                                                <span class="badge badge-success p-2 booking_status text-white">
+                                                    {{ track.status }}
                                                 </span>
-                                            {% endwith %}
-                                        {% elif row.status == 'Rejected' %}
-                                            {% with color="danger" message="Rejected" %}
-                                                <span class="badge badge-{{ color }} p-2 booking_status text-white">
-                                                    {{ message }}
+                                            {% elif track.status == 'cycled end' %}
+                                                <span class="badge badge-warning p-2 booking_status text-white">
+                                                    {{ track.status }}
                                                 </span>
-                                            {% endwith %}
-                                        {% elif row.status == 'Cancel' %}
-                                            {% with color="danger" message="Cancelled" %}
-                                                <span class="badge badge-{{ color }} p-2 booking_status text-white">
-                                                    {{ message }}
+                                            {% else %}
+                                                <span class="badge badge-secondary p-2 booking_status text-white">
+                                                    {{ track.status }}
                                                 </span>
-                                            {% endwith %}
-                                        {% endif %}-->
-                                    </td>
-                                    <td>
-                                        Route
-                                        <div class="font-weight-bold mt-1">Accounting Section</div>
-                                    </td>
-                                    <td>
-                                        Services
-                                        <div class="font-weight-bold mt-1">Budget Section</div>
-                                    </td>
-                                    <td>
-                                        Date
-                                        <div class="font-weight-bold  mt-1">
-                                            December 25, 2023
-                                          <!--{{ row.start_date|date:"M j, Y" }}-->
-                                        </div>
-                                    </td>
-                                </tr>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
                               </tbody>
                           </table>
+                          <div class="mt-5">
+                        <ul class="pagination">
+                            {% if trackings.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1" aria-label="First">
+                                        ««
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ documents.previous_page_number }}" aria-label="Previous">
+                                        «
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">‹</span>
+                                </li>
+                            {% endif %}
+
+                            {% for i in trackings.paginator.page_range %}
+                                {% if trackings.number == i %}
+                                    <li class="page-item active" aria-current="page">
+                                        <span class="page-link">{{ i }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if trackings.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ trackings.next_page_number }}" aria-label="Next">
+                                        »
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ trackings.paginator.num_pages }}" aria-label="Last">
+                                        »»
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">›</span>
+                                </li>
+                            {% endif %}
+                        </ul>
                       </div>
+                      </div>
+                      {% else %}
+                          <div class="alert alert-info">
+                              <i class="typcn typcn-info"></i>&nbsp; No tracking found
+                          </div>
+                      {% endif %}
                   </div>
               </div>
           </div>
@@ -118,5 +166,8 @@
 
 {% block js %}
     <script src="{% static 'js/jquery.canvasjs.min.js' %}"></script>
-    <script src="{% static 'script/home.js' %}"></script>
+    <script src="{% static 'script/home.js' %}?v=1"></script>
+    <script>
+        var bar_chart = {{ bar_chart|safe }}
+    </script>
 {% endblock %}

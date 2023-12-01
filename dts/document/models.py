@@ -13,6 +13,8 @@ class Document(models.Model):
     approved_by = models.ForeignKey('login.Employee', on_delete=models.SET_NULL, null=True, related_name='approved_document')
     accepted_by = models.ForeignKey('login.Department', on_delete=models.SET_NULL, null=True,
                                     related_name='accepted_document')
+    cycle_end_by = models.ForeignKey('login.Department', on_delete=models.SET_NULL, null=True,
+                                    related_name='cycle_end_document')
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(auto_now=True, null=True, editable=False)
 
@@ -39,6 +41,8 @@ class Tracking(models.Model):
     approved_by = models.ForeignKey('login.Employee', on_delete=models.SET_NULL, null=True, related_name='approved_trackings')
     accepted_by = models.ForeignKey('login.Department', on_delete=models.SET_NULL, null=True,
                                     related_name='accepted_trackings')
+    cycle_end_by = models.ForeignKey('login.Department', on_delete=models.SET_NULL, null=True,
+                                     related_name='cycle_end_tracking')
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

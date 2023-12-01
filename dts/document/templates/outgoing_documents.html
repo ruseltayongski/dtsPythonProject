@@ -7,6 +7,10 @@
         margin-left: 5px;
         font-size: 12pt;
     }
+
+    .btn-outline-warning:hover {
+        color: white;
+    }
 </style>
 {% endblock %}
 
@@ -62,11 +66,12 @@
                                         {% for document in documents %}
                                             <tr>
                                                 <td width="5%">
-                                                    <button type="button" class="btn btn-sm btn-info" onclick="trackDocument({{ document.id }}, '{{ document.route_no }}')" style="width:90px;"><i class="typcn typcn-chart-line"></i> Track</button><br><br>
-                                                    <button type="button" class="btn btn-sm btn-outline-info btn-fw" onclick="acceptDocument({{ document.id }}, '{{ document.route_no }}')"><i class="typcn typcn-archive"></i> Accept</button>
+                                                    <button type="button" class="btn btn-sm btn-info" onclick="trackDocument({{ document.id }}, '{{ document.route_no }}')" style="width:95px;"><i class="typcn typcn-chart-line"></i> Track</button><br><br>
+                                                    <button type="button" class="btn btn-sm btn-outline-info btn-fw" onclick="releaseDocument({{ document.id }})">Release To</button><br><br>
+                                                    <button type="button" class="btn btn-sm btn-outline-warning btn-fw" style="width:95px;" onclick="cycleEndDocument({{ document.id }})">Cycle End</button>
                                                 </td>
-                                                <td><h4 class="text-info cursor-pointer">{{ document.route_no }}</h4></td>
-                                                <td>{{ document.title }}</td>
+                                                <td width="15%"><h4 class="text-info cursor-pointer">{{ document.route_no }}</h4></td>
+                                                <td width="40%">{{ document.title }}</td>
                                                 <td>{{ document.content }}</td>
                                                 <td>
                                                     {{ document.created_by.first_name|default:"" }} {{ document.created_by.last_name|default:"" }}<br>
@@ -163,7 +168,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="accept_dts" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="release_dts" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-info">
@@ -172,18 +177,37 @@
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <form method="POST" action="{% url 'accept_document' %}">
+                <div class="modal_body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="cycle_end_dts" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title text-white"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <form method="POST" action="{% url 'cycle_end_document' %}">
                     {% csrf_token %}
                     <div class="modal-body">
-                        <input type="hidden" name="document_id" id="document_id_accept">
+                        <input type="hidden" name="document_id" id="document_id_end_cycle">
+                        <div class="alert alert-warning">
+                            Are you sure you to end this cycle?
+                        </div>
                         <p>
                             <label>Remarks:</label>
                             <textarea name="remarks" cols="40" rows="10" class="form-control"></textarea>
                         </p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-sm btn-outline-info btn-fw" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-sm btn-info">Accept</button>
+                        <button type="button" class="btn btn-outline-info btn-fw" data-dismiss="modal">No</button>
+                        <button type="submit" class="btn btn-info">Yes</button>
                     </div>
                 </form>
             </div>
@@ -211,9 +235,8 @@
             {% endif %}
         {% endfor %}
     {% endif %}
-
     <script>
-        var track_document_url = "{% url 'track_document' pk=123 %}";
+        var release_document_url = "{% url 'release_document' document_id=123 %}";
     </script>
     <script src="{% static 'script/outgoing_document.js' %}"></script>
 {% endblock %}

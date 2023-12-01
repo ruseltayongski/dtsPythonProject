@@ -19,7 +19,7 @@
       </li>
       <li class="nav-item {% if request.path == '/' %}active{% endif %}">
         <a class="nav-link" href="{% url 'home' %}">
-          <i class="typcn typcn-device-desktop menu-icon"></i>
+          <i class="typcn typcn-chart-pie-outline menu-icon"></i>
           <span class="menu-title">
             Dashboard
           </span>
@@ -27,29 +27,30 @@
       </li>
       <li class="nav-item">
         <a class="nav-link" href="{% url 'documents' %}">
-          <i class="typcn typcn-device-desktop menu-icon"></i>
+          <i class="typcn typcn-document-text menu-icon"></i>
           <span class="menu-title">Documents </span>
           <span class="badge badge-info ml-3">{{ document_count }}</span>
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="{% url 'incoming_docs' %}">
-          <i class="typcn typcn-device-desktop menu-icon"></i>
+          <i class="typcn typcn-download-outline menu-icon"></i>
           <span class="menu-title">Incoming </span>
           <span class="badge badge-info ml-3">{{ incoming_document_count }}</span>
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="{% url 'outgoing_docs' %}">
-          <i class="typcn typcn-device-desktop menu-icon"></i>
+          <i class="typcn typcn-upload-outline menu-icon"></i>
           <span class="menu-title">Outgoing </span>
           <span class="badge badge-info ml-3">{{ outgoing_document_count }}</span>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="">
-          <i class="typcn typcn-device-desktop menu-icon"></i>
+        <a class="nav-link" href="{% url 'cycle_end_docs' %}">
+          <i class="typcn typcn-folder menu-icon"></i>
           <span class="menu-title">Cycle End </span>
+          <span class="badge badge-info ml-3">{{ cycle_end_document_count }}</span>
         </a>
       </li>
     </ul>

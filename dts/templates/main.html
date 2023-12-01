@@ -62,7 +62,9 @@
     <script>
         var path_gif = "{% static 'images/loading.gif' %}";
         var loading = '<center><img src="'+path_gif+'" alt=""></center>';
+        var track_document_url = "{% url 'track_document' pk=123 %}";
     </script>
+    <script src="{% static 'script/main.js' %}"></script>
     <!-- End custom js for this page-->
     {% block js %}
     {% endblock %}

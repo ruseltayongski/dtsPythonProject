@@ -71,8 +71,8 @@
                                                     <button type="button" class="btn btn-sm btn-outline-info btn-fw" onclick="releaseDocument({{ document.id }})">Release To</button>
                                                     {% endif %}
                                                 </td>
-                                                <td><h4 class="text-info cursor-pointer" onclick="infoDocument({{ document.id }})">{{ document.route_no }}</h4></td>
-                                                <td>{{ document.title }}</td>
+                                                <td width="15%"><h4 class="text-info cursor-pointer" onclick="infoDocument({{ document.id }})">{{ document.route_no }}</h4></td>
+                                                <td width="40%">{{ document.title }}</td>
                                                 <td>{{ document.content }}</td>
                                                 <td>
                                                     {{ document.created_by.first_name|default:"" }} {{ document.created_by.last_name|default:"" }}<br>
@@ -265,7 +265,6 @@
 
     <script>
         var create_document_url = "{% url 'create_document' %}";
-        var track_document_url = "{% url 'track_document' pk=123 %}";
         var update_document_url = "{% url 'update_document' document_id=123 %}";
         var release_document_url = "{% url 'release_document' document_id=123 %}";
     </script>

@@ -23,3 +23,11 @@ def outgoing_document_count(request):
     else:
         count = 0
     return {'outgoing_document_count': count}
+
+
+def cycle_end_document_count(request):
+    if request.user.is_authenticated:
+        count = Document.objects.filter(cycle_end_by=request.user.department, status='cycled end').count()
+    else:
+        count = 0
+    return {'cycle_end_document_count': count}

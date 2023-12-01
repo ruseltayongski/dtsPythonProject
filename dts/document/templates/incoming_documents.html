@@ -65,8 +65,8 @@
                                                     <button type="button" class="btn btn-sm btn-info" onclick="trackDocument({{ document.id }}, '{{ document.route_no }}')" style="width:90px;"><i class="typcn typcn-chart-line"></i> Track</button><br><br>
                                                     <button type="button" class="btn btn-sm btn-outline-info btn-fw" onclick="acceptDocument({{ document.id }}, '{{ document.route_no }}')"><i class="typcn typcn-archive"></i> Accept</button>
                                                 </td>
-                                                <td><h4 class="text-info cursor-pointer">{{ document.route_no }}</h4></td>
-                                                <td>{{ document.title }}</td>
+                                                <td width="15%"><h4 class="text-info cursor-pointer">{{ document.route_no }}</h4></td>
+                                                <td width="40%">{{ document.title }}</td>
                                                 <td>{{ document.content }}</td>
                                                 <td>
                                                     {{ document.created_by.first_name|default:"" }} {{ document.created_by.last_name|default:"" }}<br>
@@ -211,9 +211,5 @@
             {% endif %}
         {% endfor %}
     {% endif %}
-
-    <script>
-        var track_document_url = "{% url 'track_document' pk=123 %}";
-    </script>
     <script src="{% static 'script/incoming_document.js' %}"></script>
 {% endblock %}

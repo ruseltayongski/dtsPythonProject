@@ -7,13 +7,32 @@ from django.db.models import Q
 from django.contrib import messages
 from django.utils import timezone
 from login.models import Department
+from django.db.models import Count
 
 
 # Create your views here.
 
 @login_required(login_url='login')
 def home(request):
-    return render(request, 'home.html')
+    current_user = request.user
+
+    trackings = Tracking.objects.filter().all().order_by('-id')
+    items_per_page = 4
+    paginator = Paginator(trackings, items_per_page)
+
+    page = request.GET.get('page')
+    try:
+        trackings = paginator.page(page)
+    except PageNotAnInteger:
+        trackings = paginator.page(1)
+    except EmptyPage:
+        trackings = paginator.page(paginator.num_pages)
+
+    bar_chart_trackings = Tracking.objects.values('status').annotate(count=Count('id'))
+    bar_chart = {tracking['status']: tracking['count'] for tracking in bar_chart_trackings}
+
+    return render(request, 'home.html',
+                  {'trackings': trackings, 'bar_chart': bar_chart if 'bar_chart' in locals() else {}})
 
 
 @login_required(login_url='login')
@@ -197,6 +216,59 @@ def acceptDocument(request):
         print(f"An error occurred: {e}")
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+def cycleEndDocument(request):
+    try:
+        document_id = request.POST.get('document_id')
+        remarks = request.POST.get('remarks')
+        cycle_end_by = Department.objects.get(pk=request.user.department.id)
+
+        document = Document.objects.get(pk=document_id)
+        document.status = "cycled end"
+        document.accepted_by = None
+        document.cycle_end_by = cycle_end_by
+        document.save()
+
+        Tracking.objects.create(
+            route_no=document.route_no,
+            status=document.status,
+            document=document,
+            created_by=request.user,
+            cycle_end_by=cycle_end_by,
+            remarks=remarks
+        )
+
+        messages.success(request, f"The document with Route No: {document.route_no} has been cycled end successfully.")
+    except Document.DoesNotExist:
+        messages.error(request, f"Document with id {document_id} does not exist.")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
+        print(f"An error occurred: {e}")
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+def cycleEndDocs(request):
+    query = request.GET.get('q')
+    data = Document.objects.filter(cycle_end_by=request.user.department, status='cycled end').all()
+    if query:
+        data = data.filter(Q(route_no__icontains=query))
+
+    data = data.order_by('-id')
+
+    items_per_page = 15
+    paginator = Paginator(data, items_per_page)
+
+    page = request.GET.get('page')
+    try:
+        data = paginator.page(page)
+    except PageNotAnInteger:
+        data = paginator.page(1)
+    except EmptyPage:
+        data = paginator.page(paginator.num_pages)
+
+    return render(request, 'cycle_end_documents.html', {'documents': data, 'query': query})
 
 
 def outgoingDocuments(request):
