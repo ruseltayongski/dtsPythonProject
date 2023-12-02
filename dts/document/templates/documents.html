@@ -72,8 +72,8 @@
                                                     {% endif %}
                                                 </td>
                                                 <td width="15%"><h4 class="text-info cursor-pointer" onclick="infoDocument({{ document.id }})">{{ document.route_no }}</h4></td>
-                                                <td width="40%">{{ document.title }}</td>
-                                                <td>{{ document.content }}</td>
+                                                <td >{{ document.title }}</td>
+                                                <td width="40%">{{ document.content }}</td>
                                                 <td>
                                                     {{ document.created_by.first_name|default:"" }} {{ document.created_by.last_name|default:"" }}<br>
                                                     <small class="text-info">{{ document.created_by.department }}</small>
