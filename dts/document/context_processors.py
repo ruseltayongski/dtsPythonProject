@@ -1,4 +1,5 @@
 from .models import Document
+from django.db.models import Q
 
 
 def document_count(request):
@@ -11,7 +12,12 @@ def document_count(request):
 
 def incoming_document_count(request):
     if request.user.is_authenticated:
-        count = Document.objects.filter(released_to=request.user.department, status='released').count()
+        count = (Document.objects
+                 .filter(
+                        Q(released_to=request.user.department, status='released') |
+                        Q(returned_to=request.user.department, status='returned')
+                    )
+                 .count())
     else:
         count = 0
     return {'incoming_document_count': count}

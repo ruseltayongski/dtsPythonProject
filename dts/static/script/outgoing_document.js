@@ -19,3 +19,9 @@ function cycleEndDocument(document_id) {
     $('.modal-title').html("<i class='typcn typcn-info'></i> Confirmation");
     $("#document_id_end_cycle").val(document_id);
 }
+
+function returnDocument(document_id) {
+    $('#return_dts').modal('show');
+    $('.modal-title').html("<i class='typcn typcn-info'></i> Confirmation");
+    $("#document_id_return").val(document_id);
+}

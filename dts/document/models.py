@@ -15,6 +15,8 @@ class Document(models.Model):
                                     related_name='accepted_document')
     cycle_end_by = models.ForeignKey('login.Department', on_delete=models.SET_NULL, null=True,
                                     related_name='cycle_end_document')
+    returned_to = models.ForeignKey('login.Department', on_delete=models.SET_NULL, null=True,
+                                    related_name='returned_document')
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(auto_now=True, null=True, editable=False)
 
@@ -43,11 +45,13 @@ class Tracking(models.Model):
                                     related_name='accepted_trackings')
     cycle_end_by = models.ForeignKey('login.Department', on_delete=models.SET_NULL, null=True,
                                      related_name='cycle_end_tracking')
+    returned_to = models.ForeignKey('login.Department', on_delete=models.SET_NULL, null=True,
+                                     related_name='returned_tracking')
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.remarks
+        return self.status
 
 
 class Feedback(models.Model):

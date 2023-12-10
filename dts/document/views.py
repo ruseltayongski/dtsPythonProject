@@ -31,7 +31,8 @@ def home(request):
     except EmptyPage:
         trackings = paginator.page(paginator.num_pages)
 
-    bar_chart_trackings = Tracking.objects.filter(created_by=request.user.id, document_id__isnull=False).values('status').annotate(count=Count('id'))
+    bar_chart_trackings = Tracking.objects.filter(created_by=request.user.id, document_id__isnull=False).values(
+        'status').annotate(count=Count('id'))
     bar_chart = {tracking['status']: tracking['count'] for tracking in bar_chart_trackings}
 
     ten_days_ago = datetime.now() - timedelta(days=10)
@@ -51,7 +52,7 @@ def home(request):
         for d in date_list
     ]
 
-    #return JsonResponse(list(linechart), safe=False)
+    # return JsonResponse(list(linechart), safe=False)
     return render(request, 'home.html', {
         'trackings': trackings,
         'bar_chart': bar_chart if 'bar_chart' in locals() else {},
@@ -186,15 +187,15 @@ def releaseDocument(request, document_id):
         messages.success(request, {
             'response': 'Successfully released document!',
             'data': {
-                    'status': document.status,
-                    'department': request.POST.get('released_to'),
-                    'route_no': document.route_no,
-                    'user_released': request.user.first_name + " " + request.user.last_name,
-                    'department_released': released_to.description,
-                    'remarks': remarks
-                }
+                'status': document.status,
+                'department': request.POST.get('released_to'),
+                'route_no': document.route_no,
+                'user_released': request.user.first_name + " " + request.user.last_name,
+                'department_released': released_to.description,
+                'remarks': remarks
             }
-        )
+        }
+                         )
         return redirect(request.META.get('HTTP_REFERER', '/'))
 
     departments = Department.objects.exclude(pk=request.user.department.id)
@@ -203,7 +204,11 @@ def releaseDocument(request, document_id):
 
 def incomingDocuments(request):
     query = request.GET.get('q')
-    data = Document.objects.filter(released_to=request.user.department, status='released').all()
+    data = Document.objects.filter(
+        Q(released_to=request.user.department, status='released') |
+        Q(returned_to=request.user.department, status='returned')
+    ).all()
+
     if query:
         data = data.filter(Q(route_no__icontains=query))
 
@@ -285,7 +290,8 @@ def cycleEndDocument(request):
             remarks=remarks
         )
 
-        messages.success(request, {'response': f"The document with Route No: {document.route_no} has been cycled end successfully."})
+        messages.success(request, {
+            'response': f"The document with Route No: {document.route_no} has been cycled end successfully."})
     except Document.DoesNotExist:
         messages.error(request, f"Document with id {document_id} does not exist.")
     except Exception as e:
@@ -337,6 +343,49 @@ def outgoingDocuments(request):
         data = paginator.page(paginator.num_pages)
 
     return render(request, 'outgoing_documents.html', {'documents': data, 'query': query})
+
+
+def returnDocument(request):
+    try:
+        document_id = request.POST.get('document_id')
+        remarks = request.POST.get('remarks')
+        last_tracking = Tracking.objects.filter(document_id=document_id).order_by('-id').last()
+        last_tracking = Tracking.objects.filter(document_id=document_id, id__gt=last_tracking.id).order_by('id').first()
+
+        document = Document.objects.get(pk=document_id)
+        document.status = "returned"
+        document.accepted_by = None
+        document.returned_to = last_tracking.created_by.department
+        document.save()
+
+        Tracking.objects.create(
+            route_no=document.route_no,
+            status=document.status,
+            document=document,
+            created_by=request.user,
+            returned_to=document.returned_to,
+            remarks=remarks
+        )
+
+        messages.success(request, {
+            'response': f"The document with Route No: {document.route_no} has been returned successfully.",
+            'data': {
+                'status': document.status,
+                'department': document.returned_to.id,
+                'route_no': document.route_no,
+                'user_returned': request.user.first_name + " " + request.user.last_name,
+                'department_returned': document.created_by.department.description,
+                'remarks': remarks
+            }
+        })
+
+    except Document.DoesNotExist:
+        messages.error(request, f"Document with id {document_id} does not exist.")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {e}")
+        print(f"An error occurred: {e}")
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 def get_duration(created):

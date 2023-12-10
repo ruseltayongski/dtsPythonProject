@@ -140,6 +140,16 @@
                             msg: itemValue.remarks
                         });
                     }
+                    else if(itemValue.department == current_user_department && itemValue.status == "returned") {
+                        Lobibox.notify('warning', {
+                            title: itemValue.route_no+" was returned by "+itemValue.user_returned+" / "+itemValue.department_returned,
+                            size: 'normal',
+                            delay: false,
+                            closeOnClick: false,
+                            img: system_logo,
+                            msg: itemValue.remarks
+                        });
+                    }
                 }
             });
         }
@@ -158,7 +168,7 @@
                             msg: msg.response
                         });
                         if(msg.data) {
-                            if(msg.data.status == 'released' || msg.data.status == 'accepted') {
+                            if(msg.data.status == 'released' || msg.data.status == 'accepted' || msg.data.status == 'returned') {
                                 window.insertDatabase(msg.data);
                             }
                         }
@@ -166,9 +176,10 @@
                 </script>
             {% else %}
                 <script>
-                    const msg = {{ message|safe }}
+                    const msg = `{{ message|safe }}`
+                    console.log(msg);
                     Lobibox.notify('warning', {
-                        msg: msg.response
+                        msg: msg
                     });
                 </script>
             {% endif %}

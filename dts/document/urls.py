@@ -14,4 +14,5 @@ urlpatterns = [
     path('outgoing_docs', views.outgoingDocuments, name="outgoing_docs"),
     path('cycle_end_document', views.cycleEndDocument, name="cycle_end_document"),
     path('cycle_end_docs', views.cycleEndDocs, name="cycle_end_docs"),
+    path('return_document', views.returnDocument, name="return_document"),
 ]
