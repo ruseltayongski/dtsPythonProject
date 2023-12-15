@@ -11,6 +11,7 @@ from django.db.models import Count, F
 from django.db.models.functions import TruncDate
 from datetime import datetime, timedelta
 from django.http import JsonResponse
+from django.db import connection
 
 
 # Create your views here.
@@ -31,33 +32,36 @@ def home(request):
     except EmptyPage:
         trackings = paginator.page(paginator.num_pages)
 
-    bar_chart_trackings = Tracking.objects.filter(created_by=request.user.id, document_id__isnull=False).values(
-        'status').annotate(count=Count('id'))
-    bar_chart = {tracking['status']: tracking['count'] for tracking in bar_chart_trackings}
 
-    ten_days_ago = datetime.now() - timedelta(days=10)
+    bar_chart = get_bar_chart_data(request.user.id)
+    line_chart = get_line_chart_data(request.user.id)
 
-    date_list = [ten_days_ago + timedelta(days=x) for x in range(11)]
-
-    result = Document.objects.filter(created__gte=ten_days_ago, created_by=request.user.id) \
-        .annotate(date=TruncDate('created')) \
-        .values('date') \
-        .annotate(count=Count('id')) \
-        .order_by('date')
-
-    count_by_date = {entry['date'].strftime('%Y-%m-%d'): entry['count'] for entry in result}
-
-    linechart = [
-        {'x': d.strftime('%Y-%m-%d'), 'y': count_by_date.get(d.strftime('%Y-%m-%d'), 0)}
-        for d in date_list
-    ]
-
-    # return JsonResponse(list(linechart), safe=False)
+    # return JsonResponse(line_chart, safe=False)
     return render(request, 'home.html', {
         'trackings': trackings,
         'bar_chart': bar_chart if 'bar_chart' in locals() else {},
-        'linechart': linechart
+        'linechart': line_chart
     })
+
+
+def get_bar_chart_data(user_id):
+    with connection.cursor() as cursor:
+        # Call the stored procedure
+        cursor.callproc('GetBarChartData', [user_id])
+        results = cursor.fetchall()
+        bar_chart = {status: count for status, count in results}
+
+    return bar_chart
+
+
+def get_line_chart_data(user_id):
+    with connection.cursor() as cursor:
+        # Call the stored procedure
+        cursor.callproc('GetLineChartData', [user_id])
+        results = cursor.fetchall()
+        line_chart = [{'x': date.strftime('%Y-%m-%d'), 'y': count} for date, count in results]
+
+    return line_chart
 
 
 @login_required(login_url='login')
@@ -87,27 +91,44 @@ def createDocument(request):
     if request.method == 'POST':
         form = DocumentForm(request.POST)
         if form.is_valid():
-            document = form.save(commit=False)
-
-            document.created_by = request.user
-            document.status = "created"
-            document.save()
-
-            Tracking.objects.create(
-                route_no=document.route_no,
-                status=document.status,
-                document=document,
-                created_by=document.created_by,
-                remarks=document.title
-            )
-
-            messages.success(request, {'response': 'Successfully saved document!'})
+            # document = form.save(commit=False)
+            #
+            # document.created_by = request.user
+            # document.status = "created"
+            # document.save()
+            #
+            # Tracking.objects.create(
+            #     route_no=document.route_no,
+            #     status=document.status,
+            #     document=document,
+            #     created_by=document.created_by,
+            #     remarks=document.title
+            # )
+            title = request.POST.get('title')
+            content = request.POST.get('content')
+            user_id = request.user.id
+            response = save_document_procedure(title, content, user_id)
+            messages.success(request, {'response': response})
 
             return redirect(request.META.get('HTTP_REFERER', '/'))
     else:
         form = DocumentForm()
 
     return render(request, 'create_documents.html', {'form': form})
+
+
+def save_document_procedure(title, user_id, content):
+    with connection.cursor() as cursor:
+        # Call the stored procedure
+        cursor.callproc('SaveDocument', [title, user_id, content])
+
+        # Fetch the result
+        result = cursor.fetchone()
+
+    # Extract the string value from the tuple
+    response_message = result[0] if result else None
+
+    return response_message
 
 
 def updateDocument(request, document_id):

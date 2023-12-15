@@ -1,0 +1,26 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetLineChartData`(IN user_id INT)
+BEGIN
+    DECLARE ten_days_ago DATE;
+
+    SET ten_days_ago = CURDATE() - INTERVAL 10 DAY;
+
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_date_list (date_value DATE);
+
+    INSERT INTO temp_date_list (date_value)
+    SELECT ten_days_ago + INTERVAL x DAY AS date_value
+    FROM (
+        SELECT x FROM (
+            SELECT @row := @row + 1 AS x
+            FROM information_schema.columns, (SELECT @row := 0) r
+            LIMIT 11
+        ) subquery
+    ) x_days;
+
+    SELECT date_value AS date, COALESCE(COUNT(id), 0) AS count
+    FROM temp_date_list
+    LEFT JOIN document_document ON DATE(created) = date_value AND created_by_id = user_id
+    GROUP BY date_value
+    ORDER BY date_value;
+
+    DROP TEMPORARY TABLE IF EXISTS temp_date_list;
+END

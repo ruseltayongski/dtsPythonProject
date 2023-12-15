@@ -1,0 +1,38 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SaveDocument`(
+    IN p_title VARCHAR(255),
+    IN p_content TEXT,
+    IN p_user_id INT
+)
+BEGIN
+    DECLARE p_route_no VARCHAR(255);
+    DECLARE p_status VARCHAR(255);
+    DECLARE response_message VARCHAR(255);
+
+    -- Set the initial status
+    SET p_status = 'created';
+
+    -- Generate route_no
+    SET p_route_no = CONCAT(
+        DATE_FORMAT(NOW(), '%Y-'),
+        IFNULL(CAST(p_user_id AS CHAR), 'unknown'),
+        DATE_FORMAT(NOW(), '%m%d%H%i%s'),  -- Modified format
+        LPAD(FLOOR(RAND() * 1000), 3, '0')
+    );
+
+    -- Insert into Document table
+    INSERT INTO document_document (route_no, title, content, created_by_id, status, created, updated)
+    VALUES (p_route_no, p_title, p_content, p_user_id, p_status, now(), now());
+
+    -- Retrieve the last inserted document ID
+    SET @document_id = LAST_INSERT_ID();
+
+    -- Insert into Tracking table
+    INSERT INTO document_tracking (route_no, status, document_id, created_by_id, remarks, created, updated)
+    VALUES (p_route_no, p_status, @document_id, p_user_id, p_title, now(), now());
+
+    -- Set the response message
+    SET response_message = 'Successfully saved document!';
+
+    -- Return success message or status if needed
+    SELECT response_message AS response;
+END

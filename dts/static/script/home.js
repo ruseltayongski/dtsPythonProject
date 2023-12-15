@@ -16,20 +16,12 @@ window.onload = function() {
                     {y: bar_chart['created']??0, label: "created"},
                     {y: bar_chart['released']??0, label: "released"},
                     {y: bar_chart['accepted']??0, label: "accepted"},
+                    {y: bar_chart['returned']??0, label: "returned"},
                     {y: bar_chart['cycled end']??0, label: "cycle end"}
                 ]
         }]
     };
     $("#chartContainer").CanvasJSChart(options);
-
-
-    /*let datapoints_bookings = [];
-    $.each(<?php echo json_encode($linechart)?>, function( index, value ) {
-        datapoints_bookings.push({
-            x: new Date(value.date),
-            y: parseFloat(value.value)
-        });
-    });*/
 
     var chart1 = new CanvasJS.Chart("chartContainer1", {
         animationEnabled: true,

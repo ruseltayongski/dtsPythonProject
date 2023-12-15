@@ -1,0 +1,7 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetBarChartData`(IN user_id INT)
+BEGIN
+    SELECT status, COUNT(id) AS count
+    FROM document_tracking
+    WHERE created_by_id = user_id AND document_id IS NOT NULL
+    GROUP BY status;
+END
