@@ -1,0 +1,24 @@
+CREATE DEFINER=`root`@`localhost` FUNCTION `getDuration`(created TIMESTAMP) RETURNS varchar(255) CHARSET latin1
+BEGIN
+    DECLARE now_time TIMESTAMP;
+    DECLARE delta_seconds INT;
+
+    SET now_time = NOW();
+    SET delta_seconds = UNIX_TIMESTAMP(now_time) - UNIX_TIMESTAMP(created);
+
+    IF delta_seconds < 60 THEN
+        RETURN 'moments ago';
+    ELSEIF delta_seconds < 3600 THEN
+        SET @minutes = FLOOR(delta_seconds / 60);
+        RETURN CONCAT(@minutes, ' ', IF(@minutes = 1, 'minute', 'minutes'), ' ago');
+    ELSEIF delta_seconds < 86400 THEN
+        SET @hours = FLOOR(delta_seconds / 3600);
+        RETURN CONCAT(@hours, ' ', IF(@hours = 1, 'hour', 'hours'), ' ago');
+    ELSEIF delta_seconds < 2592000 THEN
+        SET @days = FLOOR(delta_seconds / 86400);
+        RETURN CONCAT(@days, ' ', IF(@days = 1, 'day', 'days'), ' ago');
+    ELSE
+        SET @months = FLOOR(delta_seconds / 2592000);
+        RETURN CONCAT(@months, ' ', IF(@months = 1, 'month', 'months'), ' ago');
+    END IF;
+END

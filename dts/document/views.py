@@ -12,6 +12,7 @@ from django.db.models.functions import TruncDate
 from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.db import connection
+import json
 
 
 # Create your views here.
@@ -31,7 +32,6 @@ def home(request):
         trackings = paginator.page(1)
     except EmptyPage:
         trackings = paginator.page(paginator.num_pages)
-
 
     bar_chart = get_bar_chart_data(request.user.id)
     line_chart = get_line_chart_data(request.user.id)
@@ -91,19 +91,6 @@ def createDocument(request):
     if request.method == 'POST':
         form = DocumentForm(request.POST)
         if form.is_valid():
-            # document = form.save(commit=False)
-            #
-            # document.created_by = request.user
-            # document.status = "created"
-            # document.save()
-            #
-            # Tracking.objects.create(
-            #     route_no=document.route_no,
-            #     status=document.status,
-            #     document=document,
-            #     created_by=document.created_by,
-            #     remarks=document.title
-            # )
             title = request.POST.get('title')
             content = request.POST.get('content')
             user_id = request.user.id
@@ -170,20 +157,26 @@ def deleteDocument(request):
 
 
 def trackDocument(request, pk):
-    query = Q()
-    if pk.isdigit():
-        pk_value = int(pk)
-        query |= Q(document_id=pk_value)
-    else:
-        pk_value = pk
-        query |= Q(route_no=pk_value)
-
-    tracking = Tracking.objects.filter(query, document_id__isnull=False).all()
-
-    for track in tracking:
-        track.duration = get_duration(track.created)
-
+    tracking = call_track_document(pk)
+    #return JsonResponse(call_track_document(pk), safe=False)
     return render(request, 'track_documents.html', {'tracking': tracking})
+
+
+def call_track_document(pk_value):
+    with connection.cursor() as cursor:
+        # Call the stored procedure
+        cursor.callproc('trackDocument', [pk_value])
+
+        # Fetch the result set from the OUT parameter cursor
+        result_set = cursor.fetchall()
+
+        # Fetch column names from the cursor description
+        column_names = [desc[0] for desc in cursor.description]
+
+        # Create a list of dictionaries with column names and values
+        result_list = [dict(zip(column_names, row)) for row in result_set]
+
+        return result_list
 
 
 def releaseDocument(request, document_id):
@@ -250,26 +243,11 @@ def incomingDocuments(request):
 
 
 def acceptDocument(request):
-    try:
-        document_id = request.POST.get('document_id')
-        remarks = request.POST.get('remarks')
-        accepted_by = Department.objects.get(pk=request.user.department.id)
-
-        document = Document.objects.get(pk=document_id)
-        document.status = "accepted"
-        document.released_to = None
-        document.accepted_by = accepted_by
-        document.save()
-
-        Tracking.objects.create(
-            route_no=document.route_no,
-            status=document.status,
-            document=document,
-            created_by=request.user,
-            accepted_by=accepted_by,
-            remarks=remarks
-        )
-        messages.success(request, {
+    document_id = request.POST.get('document_id')
+    remarks = request.POST.get('remarks')
+    accept_document_procedure(document_id, remarks, request.user.id)
+    document = Document.objects.get(pk=document_id)
+    messages.success(request, {
             'response': f"Document with ROUTE NO: {document.route_no} has been accepted successfully.",
             'data': {
                 'status': document.status,
@@ -281,13 +259,62 @@ def acceptDocument(request):
                 'remarks': remarks
             }
         })
-    except Document.DoesNotExist:
-        messages.error(request, f"Document with id {document_id} does not exist.")
-    except Exception as e:
-        messages.error(request, f"An error occurred: {e}")
-        print(f"An error occurred: {e}")
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    # try:
+    #     document_id = request.POST.get('document_id')
+    #     remarks = request.POST.get('remarks')
+    #     accepted_by = Department.objects.get(pk=request.user.department.id)
+    #
+    #     document = Document.objects.get(pk=document_id)
+    #     document.status = "accepted"
+    #     document.released_to = None
+    #     document.accepted_by = accepted_by
+    #     document.save()
+    #
+    #     Tracking.objects.create(
+    #         route_no=document.route_no,
+    #         status=document.status,
+    #         document=document,
+    #         created_by=request.user,
+    #         accepted_by=accepted_by,
+    #         remarks=remarks
+    #     )
+    #     messages.success(request, {
+    #         'response': f"Document with ROUTE NO: {document.route_no} has been accepted successfully.",
+    #         'data': {
+    #             'status': document.status,
+    #             'department': document.created_by.department.id,
+    #             'route_no': document.route_no,
+    #             'user_accepted_id': request.user.id,
+    #             'user_accepted': request.user.first_name + " " + request.user.last_name,
+    #             'department_accepted': request.user.department.description,
+    #             'remarks': remarks
+    #         }
+    #     })
+    # except Document.DoesNotExist:
+    #     messages.error(request, f"Document with id {document_id} does not exist.")
+    # except Exception as e:
+    #     messages.error(request, f"An error occurred: {e}")
+    #     print(f"An error occurred: {e}")
+
+    #return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+def accept_document_procedure(document_id, remarks, user_id):
+    with connection.cursor() as cursor:
+        # Call the stored procedure
+        cursor.callproc('AcceptDocuments', [document_id, remarks, user_id])
+
+        # If your stored procedure returns any result, you can fetch it using fetchall()
+        result = cursor.fetchall()
+
+        # Commit the transaction
+        connection.commit()
+
+        return result  # Return the result if needed
+
 
 
 def cycleEndDocument(request):

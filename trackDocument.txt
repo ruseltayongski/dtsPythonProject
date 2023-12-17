@@ -1,0 +1,30 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `trackDocument`(IN pk_value VARCHAR(255))
+BEGIN
+    DECLARE query_condition VARCHAR(255);
+
+    IF pk_value REGEXP '^[0-9]+$' THEN
+        SET query_condition = CONCAT('tracking.document_id=', pk_value);
+    ELSE
+        SET query_condition = CONCAT('tracking.route_no="', pk_value, '"');
+    END IF;
+
+    SET @sql_query = CONCAT('
+        SELECT
+			CONCAT(user.first_name, " ", user.last_name) as created_by,
+			department.description as department,
+			position.title as position,
+			tracking.remarks,
+			tracking.created,
+			getDuration(tracking.created) AS duration,
+			tracking.status
+		FROM document_tracking as tracking
+		JOIN login_employee as user on user.id = tracking.created_by_id
+		JOIN login_department as department on department.id = user.department_id
+		JOIN login_position as position on position.id = user.position_id
+        WHERE ', query_condition, ' AND tracking.document_id IS NOT NULL
+    ');
+
+    PREPARE stmt FROM @sql_query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END

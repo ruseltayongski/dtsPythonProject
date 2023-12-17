@@ -1,0 +1,41 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `AcceptDocument`(
+    IN p_document_id INT,
+    IN p_remarks VARCHAR(255),
+    IN p_user_id INT
+)
+BEGIN
+    DECLARE p_accepted_by INT;
+
+    -- Get the department ID of the user
+    SELECT department_id INTO p_accepted_by FROM login_employee WHERE id = p_user_id;
+
+    -- Update Document
+    UPDATE document_document
+    SET status = 'accepted',
+        released_to_id = NULL,
+        accepted_by_id = p_accepted_by
+    WHERE id = p_document_id;
+
+    -- Create Tracking record
+    INSERT INTO document_tracking (route_no, status, document_id, created_by, accepted_by, remarks)
+    SELECT route_no, 'accepted', p_document_id, p_user_id, p_accepted_by, p_remarks
+    FROM document_tracking
+    WHERE id = p_document_id;
+
+    -- Get the details for response
+    SELECT
+        'Document with ROUTE NO: ' || tracking.route_no || ' has been accepted successfully.' AS response,
+        JSON_OBJECT(
+            'status', tracking.status,
+            'department', tracking.created_by_id,
+            'route_no', tracking.route_no,
+            'user_accepted_id', p_user_id,
+            'user_accepted', CONCAT_WS(' ', user.first_name, user.last_name),
+            'department_accepted', user.department_id,
+            'remarks', p_remarks
+        ) AS data
+    FROM document_tracking as tracking
+    JOIN login_employee as user on user.id = tracking.created_by_id
+    JOIN login_department as department on department.id = user.department_id
+    WHERE tracking.document_id = p_document_id;
+END

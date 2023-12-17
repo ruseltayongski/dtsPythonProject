@@ -25,8 +25,8 @@
                 {% for track in tracking %}
                     <tr>
                         <td>
-                            {{ track.created_by.first_name|default:"" }} {{ track.created_by.last_name|default:"" }}<br>
-                            <small class="text-info">{{ track.created_by.department }}</small>
+                            <b>{{ track.created_by|default:"" }}</b>, <small>{{ track.department }}</small><br>
+                            <small class="text-info">{{ track.position }}</small>
                         </td>
                         <td width="30%">{{ track.remarks }}</td>
                         <td>
