@@ -158,7 +158,7 @@ def deleteDocument(request):
 
 def trackDocument(request, pk):
     tracking = call_track_document(pk)
-    #return JsonResponse(call_track_document(pk), safe=False)
+    # return JsonResponse(call_track_document(pk), safe=False)
     return render(request, 'track_documents.html', {'tracking': tracking})
 
 
@@ -248,17 +248,17 @@ def acceptDocument(request):
     accept_document_procedure(document_id, remarks, request.user.id)
     document = Document.objects.get(pk=document_id)
     messages.success(request, {
-            'response': f"Document with ROUTE NO: {document.route_no} has been accepted successfully.",
-            'data': {
-                'status': document.status,
-                'department': document.created_by.department.id,
-                'route_no': document.route_no,
-                'user_accepted_id': request.user.id,
-                'user_accepted': request.user.first_name + " " + request.user.last_name,
-                'department_accepted': request.user.department.description,
-                'remarks': remarks
-            }
-        })
+        'response': f"Document with ROUTE NO: {document.route_no} has been accepted successfully.",
+        'data': {
+            'status': document.status,
+            'department': document.created_by.department.id,
+            'route_no': document.route_no,
+            'user_accepted_id': request.user.id,
+            'user_accepted': request.user.first_name + " " + request.user.last_name,
+            'department_accepted': request.user.department.description,
+            'remarks': remarks
+        }
+    })
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
@@ -299,7 +299,7 @@ def acceptDocument(request):
     #     messages.error(request, f"An error occurred: {e}")
     #     print(f"An error occurred: {e}")
 
-    #return redirect(request.META.get('HTTP_REFERER', '/'))
+    # return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 def accept_document_procedure(document_id, remarks, user_id):
@@ -314,7 +314,6 @@ def accept_document_procedure(document_id, remarks, user_id):
         connection.commit()
 
         return result  # Return the result if needed
-
 
 
 def cycleEndDocument(request):
