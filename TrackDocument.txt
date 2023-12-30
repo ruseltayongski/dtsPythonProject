@@ -1,4 +1,4 @@
-CREATE DEFINER=`root`@`localhost` PROCEDURE `trackDocument`(IN pk_value VARCHAR(255))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `TrackDocument`(IN pk_value VARCHAR(255))
 BEGIN
     DECLARE query_condition VARCHAR(255);
 
@@ -22,6 +22,7 @@ BEGIN
 		JOIN login_department as department on department.id = user.department_id
 		JOIN login_position as position on position.id = user.position_id
         WHERE ', query_condition, ' AND tracking.document_id IS NOT NULL
+        ORDER BY tracking.created desc
     ');
 
     PREPARE stmt FROM @sql_query;

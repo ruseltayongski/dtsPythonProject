@@ -1,0 +1,50 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `EndCycleDocument`(
+    IN document_id INT,
+    IN cycle_end_by_id INT,
+    IN remarks VARCHAR(255),
+    IN user_id INT
+)
+BEGIN
+    -- Declare variables
+    DECLARE route_no_value VARCHAR(255);
+    DECLARE status_value VARCHAR(255);
+
+    -- Update Document status
+    UPDATE document_document
+    SET
+        status = 'cycled end',
+        cycle_end_by_id = cycle_end_by_id,
+        accepted_by_id = Null,
+        updated = now()
+    WHERE
+        id = document_id;
+
+    -- Get route_no and status for Tracking
+    SELECT route_no, status INTO route_no_value, status_value
+    FROM document_document
+    WHERE id = document_id;
+
+    -- Insert into Tracking
+    INSERT INTO document_tracking (
+        route_no,
+        status,
+        document_id,
+        created_by_id,
+        cycle_end_by_id,
+        remarks,
+        created,
+        updated
+    ) VALUES (
+        route_no_value,
+        status_value,
+        document_id,
+        user_id,
+        cycle_end_by_id,
+        remarks,
+        now(),
+        now()
+    );
+
+    -- Return the updated document
+    SELECT * FROM document_document WHERE id = document_id;
+END
