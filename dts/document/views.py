@@ -165,7 +165,7 @@ def trackDocument(request, pk):
 def call_track_document(pk_value):
     with connection.cursor() as cursor:
         # Call the stored procedure
-        cursor.callproc('trackDocument', [pk_value])
+        cursor.callproc('TrackDocument', [pk_value])
 
         # Fetch the result set from the OUT parameter cursor
         result_set = cursor.fetchall()
@@ -183,37 +183,47 @@ def releaseDocument(request, document_id):
     if request.method == 'POST':
         remarks = request.POST.get('remarks')
         released_to = Department.objects.get(pk=request.POST.get('released_to'))
-
-        document = Document.objects.get(pk=document_id)
-        document.status = "released"
-        document.released_to = released_to
-        document.save()
-
-        Tracking.objects.create(
-            route_no=document.route_no,
-            status=document.status,
-            document=document,
-            created_by=request.user,
-            released_to=released_to,
-            remarks=remarks
-        )
+        updated_document = release_document(document_id, released_to.id, remarks, request.user.id)
 
         messages.success(request, {
-            'response': 'Successfully released document!',
-            'data': {
-                'status': document.status,
-                'department': request.POST.get('released_to'),
-                'route_no': document.route_no,
-                'user_released': request.user.first_name + " " + request.user.last_name,
-                'department_released': released_to.description,
-                'remarks': remarks
+                'response': 'Successfully released document!',
+                'data': {
+                    'status': updated_document.get('status', None),
+                    'department': request.POST.get('released_to'),
+                    'route_no': updated_document.get('route_no', None),
+                    'user_released': request.user.first_name + " " + request.user.last_name,
+                    'department_released': released_to.description,
+                    'remarks': remarks
+                }
             }
-        }
-                         )
+        )
+
         return redirect(request.META.get('HTTP_REFERER', '/'))
 
     departments = Department.objects.exclude(pk=request.user.department.id)
     return render(request, 'release_documents.html', {'document_id': document_id, 'departments': departments})
+
+
+def release_document(document_id, released_to_id, remarks, user_id):
+    # Create a cursor
+    with connection.cursor() as cursor:
+        # Call the stored procedure
+        cursor.callproc('ReleaseDocument', [document_id, released_to_id, remarks, user_id])
+
+        # Fetch the result set
+        result = cursor.fetchone()
+
+        # Get column names
+        column_names = [column[0] for column in cursor.description]
+
+        # Create a dictionary with column names as keys
+        result_dict = dict(zip(column_names, result))
+
+        # Commit the changes
+        connection.commit()
+
+        # Return the updated document
+        return result_dict
 
 
 def incomingDocuments(request):
@@ -262,45 +272,6 @@ def acceptDocument(request):
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
-    # try:
-    #     document_id = request.POST.get('document_id')
-    #     remarks = request.POST.get('remarks')
-    #     accepted_by = Department.objects.get(pk=request.user.department.id)
-    #
-    #     document = Document.objects.get(pk=document_id)
-    #     document.status = "accepted"
-    #     document.released_to = None
-    #     document.accepted_by = accepted_by
-    #     document.save()
-    #
-    #     Tracking.objects.create(
-    #         route_no=document.route_no,
-    #         status=document.status,
-    #         document=document,
-    #         created_by=request.user,
-    #         accepted_by=accepted_by,
-    #         remarks=remarks
-    #     )
-    #     messages.success(request, {
-    #         'response': f"Document with ROUTE NO: {document.route_no} has been accepted successfully.",
-    #         'data': {
-    #             'status': document.status,
-    #             'department': document.created_by.department.id,
-    #             'route_no': document.route_no,
-    #             'user_accepted_id': request.user.id,
-    #             'user_accepted': request.user.first_name + " " + request.user.last_name,
-    #             'department_accepted': request.user.department.description,
-    #             'remarks': remarks
-    #         }
-    #     })
-    # except Document.DoesNotExist:
-    #     messages.error(request, f"Document with id {document_id} does not exist.")
-    # except Exception as e:
-    #     messages.error(request, f"An error occurred: {e}")
-    #     print(f"An error occurred: {e}")
-
-    # return redirect(request.META.get('HTTP_REFERER', '/'))
-
 
 def accept_document_procedure(document_id, remarks, user_id):
     with connection.cursor() as cursor:
@@ -317,35 +288,57 @@ def accept_document_procedure(document_id, remarks, user_id):
 
 
 def cycleEndDocument(request):
-    try:
-        document_id = request.POST.get('document_id')
-        remarks = request.POST.get('remarks')
-        cycle_end_by = Department.objects.get(pk=request.user.department.id)
+    # document_id = request.POST.get('document_id')
+    # remarks = request.POST.get('remarks')
+    # cycle_end_by = Department.objects.get(pk=request.user.department.id)
+    #
+    # document = Document.objects.get(pk=document_id)
+    # document.status = "cycled end"
+    # document.accepted_by = None
+    # document.cycle_end_by = cycle_end_by
+    # document.save()
+    #
+    # Tracking.objects.create(
+    #     route_no=document.route_no,
+    #     status=document.status,
+    #     document=document,
+    #     created_by=request.user,
+    #     cycle_end_by=cycle_end_by,
+    #     remarks=remarks
+    # )
 
-        document = Document.objects.get(pk=document_id)
-        document.status = "cycled end"
-        document.accepted_by = None
-        document.cycle_end_by = cycle_end_by
-        document.save()
+    document_id = request.POST.get('document_id')
+    remarks = request.POST.get('remarks')
+    cycle_end_by_id = request.user.department.id
+    updated_document = cycle_end_document(document_id, cycle_end_by_id, remarks, request.user.id)
 
-        Tracking.objects.create(
-            route_no=document.route_no,
-            status=document.status,
-            document=document,
-            created_by=request.user,
-            cycle_end_by=cycle_end_by,
-            remarks=remarks
-        )
-
-        messages.success(request, {
-            'response': f"The document with Route No: {document.route_no} has been cycled end successfully."})
-    except Document.DoesNotExist:
-        messages.error(request, f"Document with id {document_id} does not exist.")
-    except Exception as e:
-        messages.error(request, f"An error occurred: {e}")
-        print(f"An error occurred: {e}")
+    messages.success(request, {
+        'response': f"The document with Route No: {updated_document.get('route_no', None)} has been cycled end successfully."
+    })
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+def cycle_end_document(document_id, cycle_end_by_id, remarks, user_id):
+    # Create a cursor
+    with connection.cursor() as cursor:
+        # Call the stored procedure
+        cursor.callproc('EndCycleDocument', [document_id, cycle_end_by_id, remarks, user_id])
+
+        # Fetch the result set
+        result = cursor.fetchone()
+
+        # Get column names
+        column_names = [column[0] for column in cursor.description]
+
+        # Create a dictionary with column names as keys
+        result_dict = dict(zip(column_names, result))
+
+        # Commit the changes
+        connection.commit()
+
+        # Return the updated document
+        return result_dict
 
 
 def cycleEndDocs(request):
